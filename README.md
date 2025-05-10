@@ -61,7 +61,7 @@ A powerful lexical analyzer (lexer) written in C++ with support for multiple pro
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/lex.git
+   git clone https://github.com/adhamafis/lex.git
    cd lex
    ```
 
@@ -90,7 +90,6 @@ lex/
 ├── Makefile             # Build configuration
 ├── .gitignore           # Git ignore file
 ├── README.md            # This file
-└── lex                  # Compiled executable
 ```
 
 ## Architecture

@@ -1,0 +1,19 @@
+// Sample code for testing the lexer
+int main() {
+    float x = 3.14;
+    int count = 0;
+    
+    // This is a comment
+    if (x > 3.0) {
+        count = count + 1;
+    } else {
+        count = 10;
+    }
+    
+    while (count > 0) {
+        count = count - 1;
+    }
+    
+    string message = "Hello, World!";
+    return 0;
+} 

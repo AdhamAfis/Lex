@@ -26,6 +26,7 @@
 *.exe
 *.out
 *.app
+lex
 
 # Build directories
 build/
@@ -42,7 +43,10 @@ out/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 
 # macOS specific
 .DS_Store
+
+# Generated files
+generated/
+lex

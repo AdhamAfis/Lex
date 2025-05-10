@@ -5,7 +5,9 @@ SRCS = src/main.cpp \
        src/Token.cpp \
        src/LanguageConfig.cpp \
        src/SymbolTable.cpp \
-       src/ExportFormatter.cpp
+       src/ExportFormatter.cpp \
+       src/ConfigLoader.cpp \
+       src/LanguagePlugin.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = lex
 

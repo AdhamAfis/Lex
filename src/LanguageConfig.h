@@ -12,11 +12,15 @@
 struct TokenRule {
     std::string name;
     std::regex pattern;
+    std::string patternString; // Store the original pattern string
     TokenType type;
     int precedence;
     
     TokenRule(const std::string& name, const std::string& pattern, TokenType type, int precedence = 0)
-        : name(name), pattern(pattern), type(type), precedence(precedence) {}
+        : name(name), pattern(pattern), patternString(pattern), type(type), precedence(precedence) {}
+        
+    // Get the original pattern string
+    const std::string& getPatternString() const { return patternString; }
 };
 
 // Container for a language's keyword sets

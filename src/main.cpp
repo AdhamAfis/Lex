@@ -9,6 +9,8 @@
 #include "LanguageConfig.h"
 #include "SymbolTable.h"
 #include "ExportFormatter.h"
+#include "ConfigLoader.h"
+#include "LanguagePlugin.h"
 
 // Utility functions
 std::string readFile(const std::string& filename) {
@@ -21,6 +23,49 @@ std::string readFile(const std::string& filename) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
+}
+
+// Helper function to get language configuration
+LanguageConfig getLanguageConfig(const std::string& language, const std::string& configFile = "") {
+    // First check if a custom config file is provided
+    if (!configFile.empty()) {
+        try {
+            LanguageConfig config = ConfigLoader::loadLanguageFromFile(configFile);
+            std::cout << "Using custom language configuration: " << config.getName() << " " << config.getVersion() << std::endl;
+            return config;
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading configuration file: " << e.what() << std::endl;
+            std::cerr << "Falling back to other sources." << std::endl;
+        }
+    }
+    
+    // Then check if there's a plugin available
+    auto& pluginManager = LanguagePluginManager::getInstance();
+    if (pluginManager.hasLanguage(language)) {
+        try {
+            return pluginManager.loadLanguage(language);
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading language plugin: " << e.what() << std::endl;
+            std::cerr << "Falling back to built-in configurations." << std::endl;
+        }
+    }
+    
+    // Fall back to built-in configurations
+    if (language == "c") {
+        return LanguageConfig::createCConfig();
+    } else if (language == "cpp" || language == "c++") {
+        return LanguageConfig::createCppConfig();
+    } else if (language == "java") {
+        return LanguageConfig::createJavaConfig();
+    } else if (language == "python" || language == "py") {
+        return LanguageConfig::createPythonConfig();
+    } else if (language == "javascript" || language == "js") {
+        return LanguageConfig::createJavaScriptConfig();
+    } else {
+        // Default to C++ if language not specified or recognized
+        std::cerr << "Unrecognized language '" << language << "', defaulting to C++" << std::endl;
+        return LanguageConfig::createCppConfig();
+    }
 }
 
 void processString(const std::string& source, const LanguageConfig& config, bool verbose = false) {
@@ -65,28 +110,15 @@ void processString(const std::string& source, const LanguageConfig& config, bool
 }
 
 void processFile(const std::string& filename, const std::string& language, bool verbose = false, 
-                const std::string& exportFormat = "", const std::string& exportFile = "") {
+                const std::string& exportFormat = "", const std::string& exportFile = "",
+                const std::string& configFile = "") {
     std::string source = readFile(filename);
     if (source.empty()) {
         return;
     }
     
-    // Determine language and create configuration
-    LanguageConfig config;
-    if (language == "c") {
-        config = LanguageConfig::createCConfig();
-    } else if (language == "cpp" || language == "c++") {
-        config = LanguageConfig::createCppConfig();
-    } else if (language == "java") {
-        config = LanguageConfig::createJavaConfig();
-    } else if (language == "python" || language == "py") {
-        config = LanguageConfig::createPythonConfig();
-    } else if (language == "javascript" || language == "js") {
-        config = LanguageConfig::createJavaScriptConfig();
-    } else {
-        // Default to C++ if language not specified or recognized
-        config = LanguageConfig::createCppConfig();
-    }
+    // Get language configuration
+    LanguageConfig config = getLanguageConfig(language, configFile);
     
     std::cout << "Processing file: " << filename << " (Language: " << config.getName() << ")" << std::endl;
     
@@ -156,28 +188,19 @@ void processFile(const std::string& filename, const std::string& language, bool 
     }
 }
 
-void interactiveMode(const std::string& language = "cpp") {
+void interactiveMode(const std::string& language = "cpp", const std::string& configFile = "") {
     std::string line;
     
-    // Determine language and create configuration
-    LanguageConfig config;
-    if (language == "c") {
-        config = LanguageConfig::createCConfig();
-    } else if (language == "cpp" || language == "c++") {
-        config = LanguageConfig::createCppConfig();
-    } else if (language == "java") {
-        config = LanguageConfig::createJavaConfig();
-    } else if (language == "python" || language == "py") {
-        config = LanguageConfig::createPythonConfig();
-    } else if (language == "javascript" || language == "js") {
-        config = LanguageConfig::createJavaScriptConfig();
-    } else {
-        // Default to C++ if language not specified or recognized
-        config = LanguageConfig::createCppConfig();
-    }
+    // Get language configuration
+    LanguageConfig config = getLanguageConfig(language, configFile);
     
     std::cout << "Lex Interactive Mode (Language: " << config.getName() << ")" << std::endl;
-    std::cout << "Enter 'exit' to quit, 'language <name>' to change language" << std::endl;
+    std::cout << "Enter 'exit' to quit, 'language <name>' to change language," << std::endl;
+    std::cout << "'export-config <file>' to export current language config to a file," << std::endl;
+    std::cout << "'load-config <file>' to load a language config from a file," << std::endl;
+    std::cout << "'list-plugins' to show available language plugins" << std::endl;
+    
+    auto& pluginManager = LanguagePluginManager::getInstance();
     
     while (true) {
         std::cout << "> ";
@@ -191,26 +214,66 @@ void interactiveMode(const std::string& language = "cpp") {
         if (line.substr(0, 9) == "language ") {
             std::string newLang = line.substr(9);
             
-            if (newLang == "c") {
-                config = LanguageConfig::createCConfig();
-            } else if (newLang == "cpp" || newLang == "c++") {
-                config = LanguageConfig::createCppConfig();
-            } else if (newLang == "java") {
-                config = LanguageConfig::createJavaConfig();
-            } else if (newLang == "python" || newLang == "py") {
-                config = LanguageConfig::createPythonConfig();
-            } else if (newLang == "javascript" || newLang == "js") {
-                config = LanguageConfig::createJavaScriptConfig();
-            } else {
-                std::cout << "Unsupported language: " << newLang << std::endl;
-                continue;
+            try {
+                config = getLanguageConfig(newLang);
+                std::cout << "Language changed to: " << config.getName() << " " << config.getVersion() << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Error changing language: " << e.what() << std::endl;
             }
+            continue;
+        }
+        
+        // Check for export config command
+        if (line.substr(0, 14) == "export-config ") {
+            std::string filename = line.substr(14);
+            bool success = ConfigLoader::saveLanguageToFile(config, filename);
+            if (success) {
+                std::cout << "Language configuration exported to: " << filename << std::endl;
+            } else {
+                std::cerr << "Failed to export language configuration to file" << std::endl;
+            }
+            continue;
+        }
+        
+        // Check for load config command
+        if (line.substr(0, 12) == "load-config ") {
+            std::string filename = line.substr(12);
+            try {
+                config = ConfigLoader::loadLanguageFromFile(filename);
+                std::cout << "Loaded language configuration: " << config.getName() << " " << config.getVersion() << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Error loading configuration file: " << e.what() << std::endl;
+            }
+            continue;
+        }
+        
+        // Check for list plugins command
+        if (line == "list-plugins") {
+            auto languages = pluginManager.getAvailableLanguages();
             
-            std::cout << "Language changed to: " << config.getName() << std::endl;
+            if (languages.empty()) {
+                std::cout << "No language plugins found. Place JSON language configurations in the 'plugins' directory." << std::endl;
+            } else {
+                std::cout << "Available language plugins:" << std::endl;
+                for (const auto& lang : languages) {
+                    std::cout << "  - " << lang << std::endl;
+                }
+            }
             continue;
         }
         
         processString(line, config, true);
+    }
+}
+
+void exportLanguageConfig(const std::string& language, const std::string& filename) {
+    LanguageConfig config = getLanguageConfig(language);
+    
+    bool success = ConfigLoader::saveLanguageToFile(config, filename);
+    if (success) {
+        std::cout << "Language configuration for " << config.getName() << " exported to: " << filename << std::endl;
+    } else {
+        std::cerr << "Failed to export language configuration to file" << std::endl;
     }
 }
 
@@ -219,13 +282,21 @@ void printUsage() {
     std::cout << "Options:" << std::endl;
     std::cout << "  -i, --interactive              Start in interactive mode" << std::endl;
     std::cout << "  -l, --language <lang>          Specify language (c, cpp, java, python, js)" << std::endl;
+    std::cout << "  -c, --config <file>            Use custom language configuration file" << std::endl;
+    std::cout << "  -p, --plugins-dir <dir>        Specify plugins directory (default: ./plugins)" << std::endl;
     std::cout << "  -v, --verbose                  Show detailed token information" << std::endl;
     std::cout << "  -e, --export <format>          Export tokens in format (json, xml, csv, html)" << std::endl;
     std::cout << "  -o, --output <file>            Output file for export" << std::endl;
+    std::cout << "  --export-config <lang> <file>  Export language config to a JSON file" << std::endl;
+    std::cout << "  --list-plugins                 List available language plugins" << std::endl;
     std::cout << "  -h, --help                     Display this help message" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
+    // Initialize the plugin manager
+    auto& pluginManager = LanguagePluginManager::getInstance();
+    pluginManager.scanForPlugins();
+    
     if (argc == 1) {
         interactiveMode();
         return 0;
@@ -234,10 +305,16 @@ int main(int argc, char* argv[]) {
     // Process command line arguments
     std::string filename;
     std::string language = "cpp"; // Default language
+    std::string configFile;
+    std::string pluginsDir;
     bool verbose = false;
     std::string exportFormat;
     std::string exportFile;
     bool interactive = false;
+    bool exportConfig = false;
+    std::string exportConfigLang;
+    std::string exportConfigFile;
+    bool listPlugins = false;
     
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -256,6 +333,21 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: --language requires an argument" << std::endl;
                 return 1;
             }
+        } else if (arg == "-c" || arg == "--config") {
+            if (i + 1 < argc) {
+                configFile = argv[++i];
+            } else {
+                std::cerr << "Error: --config requires an argument" << std::endl;
+                return 1;
+            }
+        } else if (arg == "-p" || arg == "--plugins-dir") {
+            if (i + 1 < argc) {
+                pluginsDir = argv[++i];
+                pluginManager.setPluginsDirectory(pluginsDir);
+            } else {
+                std::cerr << "Error: --plugins-dir requires an argument" << std::endl;
+                return 1;
+            }
         } else if (arg == "-e" || arg == "--export") {
             if (i + 1 < argc) {
                 exportFormat = argv[++i];
@@ -270,6 +362,17 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: --output requires an argument" << std::endl;
                 return 1;
             }
+        } else if (arg == "--export-config") {
+            if (i + 2 < argc) {
+                exportConfig = true;
+                exportConfigLang = argv[++i];
+                exportConfigFile = argv[++i];
+            } else {
+                std::cerr << "Error: --export-config requires two arguments" << std::endl;
+                return 1;
+            }
+        } else if (arg == "--list-plugins") {
+            listPlugins = true;
         } else if (arg[0] != '-') {
             filename = arg;
         } else {
@@ -279,13 +382,32 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    if (listPlugins) {
+        auto languages = pluginManager.getAvailableLanguages();
+        
+        if (languages.empty()) {
+            std::cout << "No language plugins found. Place JSON language configurations in the 'plugins' directory." << std::endl;
+        } else {
+            std::cout << "Available language plugins:" << std::endl;
+            for (const auto& lang : languages) {
+                std::cout << "  - " << lang << std::endl;
+            }
+        }
+        return 0;
+    }
+    
+    if (exportConfig) {
+        exportLanguageConfig(exportConfigLang, exportConfigFile);
+        return 0;
+    }
+    
     if (interactive) {
-        interactiveMode(language);
+        interactiveMode(language, configFile);
         return 0;
     }
     
     if (!filename.empty()) {
-        processFile(filename, language, verbose, exportFormat, exportFile);
+        processFile(filename, language, verbose, exportFormat, exportFile, configFile);
     } else {
         std::cerr << "No input file specified" << std::endl;
         printUsage();

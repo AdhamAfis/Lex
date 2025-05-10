@@ -1,4 +1,3 @@
-// Copyright 2024 <Copyright Owner>
 #include <vector>
 #include <memory>
 #include <string>

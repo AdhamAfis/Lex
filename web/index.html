@@ -759,9 +759,6 @@
                 <button id="exampleBtn">
                     <span>Load Example</span>
                 </button>
-                <button id="managePluginsBtn">
-                    <span>Manage Plugins</span>
-                </button>
             </div>
         </div>
         
@@ -778,86 +775,6 @@
                     <span>Analyzing...</span>
                 </div>
                 <div id="output"></div>
-            </div>
-        </div>
-        
-        <!-- Plugin Management Modal -->
-        <div id="pluginModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 class="mb-3">Manage Language Plugins</h2>
-                
-                <div class="tab">
-                    <button class="tablinks active" onclick="openTab(event, 'installedPlugins')">Installed Plugins</button>
-                    <button class="tablinks" onclick="openTab(event, 'createPlugin')">Create New Plugin</button>
-                    <button class="tablinks" onclick="openTab(event, 'importPlugin')">Import Plugin</button>
-                </div>
-                
-                <div id="installedPlugins" class="tabcontent" style="display: block;">
-                    <h3 class="mb-2">Your Custom Plugins</h3>
-                    <p class="mb-3">These plugins are stored in your browser's local storage</p>
-                    <div id="pluginsList">
-                        <!-- Will be populated with plugins from local storage -->
-                    </div>
-                </div>
-                
-                <div id="createPlugin" class="tabcontent">
-                    <h3 class="mb-3">Create New Language Plugin</h3>
-                    
-                    <div class="form-group">
-                        <label for="templateType">Start with a template:</label>
-                        <select id="templateType" class="form-control">
-                            <option value="">Custom (Empty Configuration)</option>
-                            <option value="javascript">JavaScript Template</option>
-                            <option value="python">Python Template</option>
-                            <option value="ruby">Ruby Template</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="pluginName">Language Name:</label>
-                        <input type="text" id="pluginName" class="form-control" placeholder="e.g., Python, Ruby, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label for="pluginId">Language ID:</label>
-                        <input type="text" id="pluginId" class="form-control" placeholder="e.g., py, ruby, etc.">
-                        <small class="form-text">This will be used to identify your language in the dropdown menu.</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="pluginConfig">Configuration JSON:</label>
-                        <textarea id="pluginConfig" class="form-control" rows="15" placeholder='{"keywordSets": {"keywords": ["if", "else", "while"]}, ...}'></textarea>
-                        <small class="form-text">Define language features like keywords, operators, and strings.</small>
-                    </div>
-                    <button id="savePluginBtn" class="btn-primary">Save Plugin</button>
-                </div>
-                
-                <div id="importPlugin" class="tabcontent">
-                    <h3 class="mb-3">Import Plugin from JSON File</h3>
-                    <p class="mb-2">Load a language configuration from a JSON file.</p>
-                    
-                    <div class="file-upload-container">
-                        <label for="pluginFile" class="file-upload-label">
-                            <div class="upload-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M11 14.9861C11 15.5384 11.4477 15.9861 12 15.9861C12.5523 15.9861 13 15.5384 13 14.9861V7.82831L16.2428 11.0711C16.6333 11.4616 17.2665 11.4616 17.657 11.0711C18.0475 10.6806 18.0475 10.0474 17.657 9.65692L12.7071 4.70703C12.3166 4.31651 11.6834 4.31651 11.2929 4.70703L6.34315 9.65691C5.95262 10.0474 5.95262 10.6806 6.34315 11.0711C6.73367 11.4616 7.36684 11.4616 7.75736 11.0711L11 7.82831V14.9861Z" fill="currentColor"/>
-                                    <path d="M4 14H6V18H18V14H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V14Z" fill="currentColor"/>
-                                </svg>
-                            </div>
-                            <span class="upload-text">Choose file or drag and drop</span>
-                            <span class="upload-hint">JSON files only</span>
-                        </label>
-                        <input type="file" id="pluginFile" accept=".json" class="file-upload-input">
-                    </div>
-                    
-                    <div id="filePreview" style="display:none;" class="mt-2 mb-3">
-                        <div class="selected-file">
-                            <span id="selectedFileName">No file selected</span>
-                            <button id="removeFileBtn" class="small-btn">Remove</button>
-                        </div>
-                    </div>
-                    
-                    <button id="importPluginBtn" class="btn-primary">Import Plugin</button>
-                </div>
             </div>
         </div>
         

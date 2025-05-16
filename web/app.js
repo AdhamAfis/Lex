@@ -5,6 +5,12 @@ console.log('Loading app.js');
 LexModule().then(function(Module) {
     console.log('Lex WebAssembly module loaded successfully');
     
+    // Check if initialization was successful
+    if (typeof Module._initModule === 'function') {
+        const initResult = Module._initModule();
+        console.log('Module initialization result:', initResult);
+    }
+    
     // UI Elements
     const sourceTextArea = document.getElementById('source');
     const outputDiv = document.getElementById('output');
@@ -36,17 +42,24 @@ LexModule().then(function(Module) {
                 option.textContent = lang.name;
                 languageSelect.appendChild(option);
             });
+            
+            // If no languages are found from plugins, this could mean the plugins weren't loaded
+            if (languages.length === 0) {
+                console.warn('No languages found from plugins - plugins may not be loaded');
+                throw new Error('No languages found');
+            }
         } catch(e) {
             console.error('Error loading languages:', e);
-            // Fallback to hardcoded languages
+            // Fallback to hardcoded languages - these must match the plugin files we're using
             const fallbackLanguages = [
-                { id: 'cpp', name: 'C++' },
-                { id: 'js', name: 'JavaScript' },
+                { id: 'c++', name: 'C++' },
+                { id: 'javascript', name: 'JavaScript' },
                 { id: 'python', name: 'Python' },
                 { id: 'java', name: 'Java' },
                 { id: 'c', name: 'C' }
             ];
             
+            console.warn('Using fallback languages');
             languageSelect.innerHTML = '';
             fallbackLanguages.forEach(lang => {
                 const option = document.createElement('option');
@@ -61,6 +74,7 @@ LexModule().then(function(Module) {
     function displayTokens(tokensJson, executionTime) {
         try {
             console.log('Parsing tokens JSON');
+            console.log('Raw tokens JSON:', tokensJson);
             const tokens = JSON.parse(tokensJson);
             
             // Hide loading indicator
@@ -78,6 +92,12 @@ LexModule().then(function(Module) {
             timeDisplay.className = 'execution-time';
             timeDisplay.innerHTML = `<span>Execution time:</span> ${executionTime} ms`;
             statsContainer.appendChild(timeDisplay);
+            
+            // Add language info
+            const langInfo = document.createElement('div');
+            langInfo.className = 'language-info';
+            langInfo.innerHTML = `<span>Language:</span> ${languageSelect.options[languageSelect.selectedIndex].text} (${languageSelect.value})`;
+            statsContainer.appendChild(langInfo);
             
             // Add token count
             const tokenCountDiv = document.createElement('div');
@@ -147,8 +167,10 @@ LexModule().then(function(Module) {
             return;
         }
         
+        // Get selected language and text for display
         const selectedLanguage = languageSelect.value;
-        console.log('Analyzing code for language:', selectedLanguage);
+        const selectedLanguageText = languageSelect.options[languageSelect.selectedIndex].text;
+        console.log('Analyzing code for language:', selectedLanguage, '(' + selectedLanguageText + ')');
         
         // Show loading indicator
         loadingDiv.style.display = 'flex';
@@ -194,7 +216,8 @@ LexModule().then(function(Module) {
 
     // Add example code based on selected language
     function addExampleCode() {
-        const lang = languageSelect.value;
+        const lang = languageSelect.value.toLowerCase();
+        console.log('Getting example for language:', lang);
         let example = '';
         
         if (lang === 'cpp' || lang === 'c++') {
@@ -203,7 +226,7 @@ LexModule().then(function(Module) {
             example = `function greet(name) {\n    console.log("Hello, " + name + "!");\n    return true;\n}\n\ngreet("World");`;
         } else if (lang === 'java') {
             example = `public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`;
-        } else if (lang === 'python' || lang === 'py') {
+        } else if (lang === 'python') {
             example = `def greet(name):\n    print(f"Hello, {name}!")\n    return True\n\ngreet("World")`;
         } else if (lang === 'c') {
             example = `#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`;

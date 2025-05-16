@@ -12,10 +12,11 @@ OBJS = $(SRCS:.cpp=.wasm.o)  # Use .wasm.o to avoid conflicts with regular .o fi
 TARGET = web/lex.js
 
 # Additional flags for the final linking step
-EMFLAGS = -s EXPORTED_FUNCTIONS=['_tokenizeString','_getLanguageNames','_registerLanguageConfig'] \
+EMFLAGS = -s EXPORTED_FUNCTIONS=['_tokenizeString','_getLanguageNames','_registerLanguageConfig','_initModule'] \
           -s EXPORT_NAME="LexModule" \
           -s MODULARIZE=1 \
-          --preload-file plugins \
+          -s INVOKE_RUN=1 \
+          --preload-file web/plugin_templates@/plugins \
           -o $(TARGET)
 
 all: web_dir $(TARGET)

@@ -2,11 +2,57 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <filesystem>
 #include "Lexer.h"
 #include "LanguageConfig.h"
 #include "LanguagePlugin.h"
 #include "Token.h"
 #include "ConfigLoader.h"
+
+// Function to initialize plugin system
+void initializePlugins() {
+    printf("Initializing plugin system...\n");
+    auto& pluginManager = LanguagePluginManager::getInstance();
+    
+    // Set plugin directory
+    pluginManager.setPluginsDirectory("/plugins");
+    printf("Plugin directory set to /plugins\n");
+    
+    // Try to list files in the plugins directory
+    try {
+        printf("Contents of /plugins directory:\n");
+        for (const auto& entry : std::filesystem::directory_iterator("/plugins")) {
+            printf("  - %s\n", entry.path().string().c_str());
+        }
+    } catch (const std::exception& e) {
+        printf("Error listing plugins directory: %s\n", e.what());
+    }
+    
+    // Scan for plugins
+    pluginManager.scanForPlugins();
+    
+    // Log available plugins
+    auto plugins = pluginManager.getAvailableLanguages();
+    printf("Available plugins after scanning: %zu\n", plugins.size());
+    for (const auto& plugin : plugins) {
+        printf("Found plugin: %s\n", plugin.c_str());
+    }
+    
+    // List all registered plugins with file paths
+    printf("Registered plugins with file paths:\n");
+    try {
+        for (const auto& plugin : plugins) {
+            try {
+                auto config = pluginManager.loadLanguage(plugin);
+                printf("  - %s: %s (%s)\n", plugin.c_str(), config.getName().c_str(), config.getVersion().c_str());
+            } catch (const std::exception& e) {
+                printf("  - %s: ERROR loading (%s)\n", plugin.c_str(), e.what());
+            }
+        }
+    } catch (const std::exception& e) {
+        printf("Error testing plugins: %s\n", e.what());
+    }
+}
 
 // Helper function to escape JSON strings
 std::string escapeJsonString(const std::string& input) {
@@ -41,6 +87,15 @@ std::map<std::string, LanguageConfig> customLanguages;
 
 // Exported functions need to use extern "C" to avoid name mangling
 extern "C" {
+
+// Initialize function - will be called automatically on module load
+EMSCRIPTEN_KEEPALIVE
+int initModule() {
+    printf("Initializing Lex WebAssembly module...\n");
+    initializePlugins();
+    printf("Module initialization complete\n");
+    return 1;
+}
 
 // Function to register a custom language configuration at runtime
 EMSCRIPTEN_KEEPALIVE
@@ -86,21 +141,53 @@ char* tokenizeString(const char* sourceCode, const char* languageId) {
         if (customLangIt != customLanguages.end()) {
             config = customLangIt->second;
         } else {
-            // Handle some common aliases
+            // Debug info about the requested language
+            printf("Tokenizing with language: %s\n", langId.c_str());
+            
+            // Handle some common aliases - we need to match the file names
             std::string langKey = langId;
+            
+            // Map to actual plugin file names
+            // File pattern is {key}_config.json
             if (langId == "c++") langKey = "cpp";
-            if (langId == "py") langKey = "python";
+            if (langId == "py") langKey = "python";  
             if (langId == "javascript") langKey = "js";
+            
+            printf("Mapped to plugin key: %s (looking for %s_config.json)\n", langKey.c_str(), langKey.c_str());
             
             // Check if there's a plugin
             auto& pluginManager = LanguagePluginManager::getInstance();
             if (pluginManager.hasLanguage(langKey)) {
                 config = pluginManager.loadLanguage(langKey);
+                printf("Successfully loaded plugin for %s\n", langKey.c_str());
             } else {
-                // Default to C++ if not found
+                // Try with different mappings if first attempt failed
+                printf("Plugin %s not found, trying alternatives...\n", langKey.c_str());
+                
+                // If c++ didn't work, try cpp
+                if (langId == "c++") {
+                    printf("Trying 'cpp' instead of 'c++'\n");
+                    if (pluginManager.hasLanguage("cpp")) {
+                        config = pluginManager.loadLanguage("cpp");
+                        printf("Successfully loaded plugin for cpp\n");
+                    }
+                }
+                
+                // If javascript didn't work, try js
+                if (langId == "javascript") {
+                    printf("Trying 'js' instead of 'javascript'\n");
+                    if (pluginManager.hasLanguage("js")) {
+                        config = pluginManager.loadLanguage("js");
+                        printf("Successfully loaded plugin for js\n");
+                    }
+                }
+                
+                // Default to C if not found
                 try {
-                    config = pluginManager.loadLanguage("cpp");
+                    printf("Falling back to 'c' plugin\n");
+                    config = pluginManager.loadLanguage("c");
                 } catch (...) {
+                    printf("No fallback plugin available\n");
                     throw std::runtime_error("No language plugins available");
                 }
             }

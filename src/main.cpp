@@ -35,36 +35,34 @@ LanguageConfig getLanguageConfig(const std::string& language, const std::string&
             return config;
         } catch (const std::exception& e) {
             std::cerr << "Error loading configuration file: " << e.what() << std::endl;
-            std::cerr << "Falling back to other sources." << std::endl;
+            std::cerr << "Falling back to plugins." << std::endl;
         }
     }
     
-    // Then check if there's a plugin available
+    // Now exclusively use plugins for all language configurations
     auto& pluginManager = LanguagePluginManager::getInstance();
-    if (pluginManager.hasLanguage(language)) {
+    
+    // Handle some common aliases
+    std::string langKey = language;
+    if (language == "c++") langKey = "cpp";
+    if (language == "py") langKey = "python";
+    if (language == "javascript") langKey = "js";
+    
+    if (pluginManager.hasLanguage(langKey)) {
         try {
-            return pluginManager.loadLanguage(language);
+            return pluginManager.loadLanguage(langKey);
         } catch (const std::exception& e) {
             std::cerr << "Error loading language plugin: " << e.what() << std::endl;
-            std::cerr << "Falling back to built-in configurations." << std::endl;
         }
     }
     
-    // Fall back to built-in configurations
-    if (language == "c") {
-        return LanguageConfig::createCConfig();
-    } else if (language == "cpp" || language == "c++") {
-        return LanguageConfig::createCppConfig();
-    } else if (language == "java") {
-        return LanguageConfig::createJavaConfig();
-    } else if (language == "python" || language == "py") {
-        return LanguageConfig::createPythonConfig();
-    } else if (language == "javascript" || language == "js") {
-        return LanguageConfig::createJavaScriptConfig();
-    } else {
-        // Default to C++ if language not specified or recognized
-        std::cerr << "Unrecognized language '" << language << "', defaulting to C++" << std::endl;
-        return LanguageConfig::createCppConfig();
+    // If language not found, default to c++ plugin
+    std::cerr << "Unrecognized language '" << language << "', defaulting to C++" << std::endl;
+    try {
+        return pluginManager.loadLanguage("cpp");
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading default cpp plugin: " << e.what() << std::endl;
+        throw std::runtime_error("Could not load any language configuration");
     }
 }
 
@@ -281,7 +279,7 @@ void printUsage() {
     std::cout << "Usage: lex [options] [file]" << std::endl;
     std::cout << "Options:" << std::endl;
     std::cout << "  -i, --interactive              Start in interactive mode" << std::endl;
-    std::cout << "  -l, --language <lang>          Specify language (c, cpp, java, python, js)" << std::endl;
+    std::cout << "  -l, --language <lang>          Specify language from available plugins" << std::endl;
     std::cout << "  -c, --config <file>            Use custom language configuration file" << std::endl;
     std::cout << "  -p, --plugins-dir <dir>        Specify plugins directory (default: ./plugins)" << std::endl;
     std::cout << "  -v, --verbose                  Show detailed token information" << std::endl;
@@ -290,12 +288,22 @@ void printUsage() {
     std::cout << "  --export-config <lang> <file>  Export language config to a JSON file" << std::endl;
     std::cout << "  --list-plugins                 List available language plugins" << std::endl;
     std::cout << "  -h, --help                     Display this help message" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Available plugins are in the 'plugins' directory. Run with --list-plugins to see them." << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    // Initialize the plugin manager
+    // Initialize the plugin manager and scan for language plugins
     auto& pluginManager = LanguagePluginManager::getInstance();
     pluginManager.scanForPlugins();
+    
+    // Check if any language plugins were loaded
+    auto languages = pluginManager.getAvailableLanguages();
+    if (languages.empty()) {
+        std::cerr << "Error: No language plugins found." << std::endl;
+        std::cerr << "Place language configuration files in the 'plugins' directory." << std::endl;
+        return 1;
+    }
     
     if (argc == 1) {
         interactiveMode();
@@ -304,7 +312,7 @@ int main(int argc, char* argv[]) {
     
     // Process command line arguments
     std::string filename;
-    std::string language = "cpp"; // Default language
+    std::string language = "c++"; // Default language (will be mapped to cpp)
     std::string configFile;
     std::string pluginsDir;
     bool verbose = false;
@@ -407,6 +415,19 @@ int main(int argc, char* argv[]) {
     }
     
     if (!filename.empty()) {
+        // If no language specified, try to guess from file extension
+        if (language.empty() || language == "c++") {
+            size_t dotPos = filename.find_last_of('.');
+            if (dotPos != std::string::npos) {
+                std::string ext = filename.substr(dotPos + 1);
+                if (ext == "c") language = "c";
+                else if (ext == "cpp" || ext == "cc" || ext == "cxx" || ext == "hpp" || ext == "h") language = "c++";
+                else if (ext == "java") language = "java";
+                else if (ext == "py") language = "python";
+                else if (ext == "js") language = "javascript";
+            }
+        }
+        
         processFile(filename, language, verbose, exportFormat, exportFile, configFile);
     } else {
         std::cerr << "No input file specified" << std::endl;

@@ -40,6 +40,9 @@ void LanguagePluginManager::scanForPlugins() {
     try {
         for (const auto& entry : std::filesystem::directory_iterator(pluginsDirectory)) {
             if (entry.is_regular_file() && entry.path().extension() == ".json") {
+                std::string filename = entry.path().filename().string();
+                std::cout << "Found config file: " << filename << std::endl;
+                
                 // Try to load the language definition to get its name
                 try {
                     LanguageConfig config = ConfigLoader::loadLanguageFromFile(entry.path().string());
@@ -49,12 +52,36 @@ void LanguagePluginManager::scanForPlugins() {
                     std::string lowerName = name;
                     std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
                     
-                    // Register the plugin
+                    // Register the plugin by name
                     registerPlugin(lowerName, entry.path().string());
                     
-                    std::cout << "Found language plugin: " << name << " (" << entry.path().filename().string() << ")" << std::endl;
+                    // Also register by filename without _config.json
+                    if (filename.length() > 12 && filename.substr(filename.length() - 12) == "_config.json") {
+                        std::string fileBaseName = filename.substr(0, filename.length() - 12);
+                        std::transform(fileBaseName.begin(), fileBaseName.end(), fileBaseName.begin(), ::tolower);
+                        
+                        // Only register if different from name
+                        if (fileBaseName != lowerName) {
+                            registerPlugin(fileBaseName, entry.path().string());
+                            std::cout << "  - Also registered as: " << fileBaseName << std::endl;
+                        }
+                        
+                        // Register common language aliases
+                        if (fileBaseName == "cpp") {
+                            registerPlugin("c++", entry.path().string());
+                            std::cout << "  - Also registered as: c++" << std::endl;
+                        } else if (fileBaseName == "js") {
+                            registerPlugin("javascript", entry.path().string());
+                            std::cout << "  - Also registered as: javascript" << std::endl;
+                        } else if (fileBaseName == "python") {
+                            registerPlugin("py", entry.path().string());
+                            std::cout << "  - Also registered as: py" << std::endl;
+                        }
+                    }
+                    
+                    std::cout << "Found language plugin: " << name << " (" << filename << ")" << std::endl;
                 } catch (const std::exception& e) {
-                    std::cerr << "Error loading language plugin " << entry.path().filename().string() << ": " << e.what() << std::endl;
+                    std::cerr << "Error loading language plugin " << filename << ": " << e.what() << std::endl;
                 }
             }
         }
@@ -86,11 +113,40 @@ LanguageConfig LanguagePluginManager::loadLanguage(const std::string& name) {
 }
 
 std::vector<std::string> LanguagePluginManager::getAvailableLanguages() const {
+    // Use set to avoid duplicates based on canonical names
+    std::unordered_set<std::string> languageSet;
     std::vector<std::string> languages;
-    languages.reserve(pluginMap.size());
     
+    // Map of known aliases to canonical names
+    const std::unordered_map<std::string, std::string> aliasMap = {
+        {"c++", "cpp"},
+        {"javascript", "js"},
+        {"py", "python"}
+    };
+    
+    // First pass: collect canonical names and skip aliases
     for (const auto& entry : pluginMap) {
-        languages.push_back(entry.first);
+        std::string lang = entry.first;
+        
+        // Check if this is a known alias - if so, skip it
+        bool isAlias = false;
+        for (const auto& [alias, canonical] : aliasMap) {
+            if (lang == alias) {
+                isAlias = true;
+                break;
+            }
+        }
+        
+        if (!isAlias) {
+            // It's not an alias, so it's a canonical name
+            languageSet.insert(lang);
+        }
+    }
+    
+    // Convert set to vector
+    languages.reserve(languageSet.size());
+    for (const auto& lang : languageSet) {
+        languages.push_back(lang);
     }
     
     return languages;

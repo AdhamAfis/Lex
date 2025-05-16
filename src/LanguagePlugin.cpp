@@ -73,9 +73,9 @@ void LanguagePluginManager::scanForPlugins() {
                         } else if (fileBaseName == "js") {
                             registerPlugin("javascript", entry.path().string());
                             std::cout << "  - Also registered as: javascript" << std::endl;
-                        } else if (fileBaseName == "py") {
-                            registerPlugin("python", entry.path().string());
-                            std::cout << "  - Also registered as: python" << std::endl;
+                        } else if (fileBaseName == "python") {
+                            registerPlugin("py", entry.path().string());
+                            std::cout << "  - Also registered as: py" << std::endl;
                         }
                     }
                     
@@ -113,11 +113,40 @@ LanguageConfig LanguagePluginManager::loadLanguage(const std::string& name) {
 }
 
 std::vector<std::string> LanguagePluginManager::getAvailableLanguages() const {
+    // Use set to avoid duplicates based on canonical names
+    std::unordered_set<std::string> languageSet;
     std::vector<std::string> languages;
-    languages.reserve(pluginMap.size());
     
+    // Map of known aliases to canonical names
+    const std::unordered_map<std::string, std::string> aliasMap = {
+        {"c++", "cpp"},
+        {"javascript", "js"},
+        {"py", "python"}
+    };
+    
+    // First pass: collect canonical names and skip aliases
     for (const auto& entry : pluginMap) {
-        languages.push_back(entry.first);
+        std::string lang = entry.first;
+        
+        // Check if this is a known alias - if so, skip it
+        bool isAlias = false;
+        for (const auto& [alias, canonical] : aliasMap) {
+            if (lang == alias) {
+                isAlias = true;
+                break;
+            }
+        }
+        
+        if (!isAlias) {
+            // It's not an alias, so it's a canonical name
+            languageSet.insert(lang);
+        }
+    }
+    
+    // Convert set to vector
+    languages.reserve(languageSet.size());
+    for (const auto& lang : languageSet) {
+        languages.push_back(lang);
     }
     
     return languages;

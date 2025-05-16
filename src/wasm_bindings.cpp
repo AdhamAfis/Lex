@@ -15,13 +15,13 @@ void initializePlugins() {
     auto& pluginManager = LanguagePluginManager::getInstance();
     
     // Set plugin directory
-    pluginManager.setPluginsDirectory("/plugins");
-    printf("Plugin directory set to /plugins\n");
+    pluginManager.setPluginsDirectory("plugins");
+    printf("Plugin directory set to plugins\n");
     
     // Try to list files in the plugins directory
     try {
-        printf("Contents of /plugins directory:\n");
-        for (const auto& entry : std::filesystem::directory_iterator("/plugins")) {
+        printf("Contents of plugins directory:\n");
+        for (const auto& entry : std::filesystem::directory_iterator("plugins")) {
             printf("  - %s\n", entry.path().string().c_str());
         }
     } catch (const std::exception& e) {
@@ -257,10 +257,14 @@ char* getLanguageNames() {
     auto plugins = pluginManager.getAvailableLanguages();
     bool firstItem = true;
     
+    printf("getLanguageNames: Found %zu languages\n", plugins.size());
     for (const auto& plugin : plugins) {
+        printf("getLanguageNames: Processing plugin '%s'\n", plugin.c_str());
         try {
             // Load the language to get its name
             auto config = pluginManager.loadLanguage(plugin);
+            printf("getLanguageNames: Loaded language '%s' (%s)\n", 
+                   config.getName().c_str(), plugin.c_str());
             
             if (!firstItem) {
                 jsonResponse << ",";
@@ -269,8 +273,12 @@ char* getLanguageNames() {
             
             jsonResponse << "{\"id\": \"" << plugin << "\", \"name\": \"" 
                        << escapeJsonString(config.getName()) << "\"}";
-        } catch (...) {
+        } catch (const std::exception& e) {
             // Skip if we can't load it
+            printf("getLanguageNames: Error loading plugin '%s': %s\n", plugin.c_str(), e.what());
+            continue;
+        } catch (...) {
+            printf("getLanguageNames: Unknown error loading plugin '%s'\n", plugin.c_str());
             continue;
         }
     }

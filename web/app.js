@@ -31,12 +31,55 @@ LexModule().then(function(Module) {
             const languagesJson = getLanguageNames();
             console.log('Language names received:', languagesJson);
             const languages = JSON.parse(languagesJson);
+            console.log('Parsed languages:', languages);
             
             // Clear existing options
             languageSelect.innerHTML = '';
             
-            // Add languages from the module
+            // Filter and normalize languages
+            const normalizedLanguages = [];
+            const seenLanguages = new Set();
+            
             languages.forEach(lang => {
+                // Normalize language names
+                let name = lang.name;
+                let id = lang.id;
+                console.log('Processing language:', id, name);
+                
+                // Apply consistent capitalization for display names
+                switch(id.toLowerCase()) {
+                    case 'c':
+                        name = 'C';
+                        break;
+                    case 'cpp':
+                    case 'c++':
+                        name = 'C++';
+                        id = 'cpp';
+                        break;
+                    case 'js':
+                    case 'javascript':
+                        name = 'JavaScript';
+                        id = 'js';
+                        break;
+                    case 'py':
+                    case 'python':
+                        name = 'Python';
+                        id = 'python';
+                        break;
+                    case 'java':
+                        name = 'Java';
+                        break;
+                }
+                
+                // Avoid duplicates
+                if (!seenLanguages.has(id.toLowerCase())) {
+                    normalizedLanguages.push({ id, name });
+                    seenLanguages.add(id.toLowerCase());
+                }
+            });
+            
+            // Add languages from the module
+            normalizedLanguages.forEach(lang => {
                 const option = document.createElement('option');
                 option.value = lang.id;
                 option.textContent = lang.name;
@@ -44,16 +87,33 @@ LexModule().then(function(Module) {
             });
             
             // If no languages are found from plugins, this could mean the plugins weren't loaded
-            if (languages.length === 0) {
+            if (normalizedLanguages.length === 0) {
                 console.warn('No languages found from plugins - plugins may not be loaded');
                 throw new Error('No languages found');
             }
         } catch(e) {
             console.error('Error loading languages:', e);
+            console.error('Error stack:', e.stack);
+            
+            // Add detailed logging
+            try {
+                // Try to manually get the language names again
+                console.log('Trying to get language names directly');
+                const retrylanguagesJson = getLanguageNames();
+                console.log('Retry raw result:', retrylanguagesJson);
+                const retryLanguages = JSON.parse(retrylanguagesJson);
+                console.log('Retry parsed languages:', retryLanguages);
+                if (retryLanguages.length === 0) {
+                    console.error('No languages found from retry attempt');
+                }
+            } catch (retryError) {
+                console.error('Error during retry:', retryError);
+            }
+            
             // Fallback to hardcoded languages - these must match the plugin files we're using
             const fallbackLanguages = [
-                { id: 'c++', name: 'C++' },
-                { id: 'javascript', name: 'JavaScript' },
+                { id: 'cpp', name: 'C++' },
+                { id: 'js', name: 'JavaScript' },
                 { id: 'python', name: 'Python' },
                 { id: 'java', name: 'Java' },
                 { id: 'c', name: 'C' }

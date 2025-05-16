@@ -16,7 +16,7 @@ EMFLAGS = -s EXPORTED_FUNCTIONS=['_tokenizeString','_getLanguageNames','_registe
           -s EXPORT_NAME="LexModule" \
           -s MODULARIZE=1 \
           -s INVOKE_RUN=1 \
-          --preload-file web/plugin_templates@/plugins \
+          --preload-file plugins@/plugins \
           -o $(TARGET)
 
 all: web_dir $(TARGET)

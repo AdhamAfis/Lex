@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+*.wasm.o
 
 # Precompiled Headers
 *.gch
@@ -50,3 +51,15 @@ cmake_install.cmake
 # Generated files
 generated/
 lex
+
+# WebAssembly output
+*.wasm
+*.wasm.js
+*.js.mem
+*.data
+web/lex.js
+web/lex.wasm
+web/lex.data
+
+# Don't ignore plugin templates
+!web/plugin_templates/*.json

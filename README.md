@@ -35,6 +35,9 @@ A powerful lexical analyzer (lexer) written in C++ with support for multiple pro
     - [Debug Mode](#debug-mode)
   - [Extending the Lexer](#extending-the-lexer)
   - [Third-Party Libraries](#third-party-libraries)
+  - [Web Version](#web-version)
+    - [Building the Web Version](#building-the-web-version)
+    - [Customization](#customization)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -452,6 +455,50 @@ This project uses the following third-party libraries:
   - License: MIT
   - Used for parsing and generating JSON configuration files
 
+## Web Version
+
+Lex is also available as a WebAssembly module that can run directly in your browser. You can try it online at:
+
+[https://adhamafis.github.io/lex/](https://adhamafis.github.io/lex/)
+
+### Building the Web Version
+
+To compile Lex to WebAssembly for web browsers:
+
+1. Install the Emscripten compiler toolkit:
+   ```bash
+   # Using a package manager
+   brew install emscripten  # macOS
+   
+   # Or manually
+   git clone https://github.com/emscripten-core/emsdk.git
+   cd emsdk
+   ./emsdk install latest
+   ./emsdk activate latest
+   source ./emsdk_env.sh
+   ```
+
+2. Build using the emscripten makefile:
+   ```bash
+   make -f emscripten.mk
+   ```
+
+3. The compiled files will be placed in the `web/` directory
+   - `lex.js` - JavaScript glue code
+   - `lex.wasm` - WebAssembly binary
+   - Various support files for the module
+
+4. Open `web/index.html` in a browser to test locally:
+   ```bash
+   cd web && python -m http.server
+   ```
+
+5. Visit http://localhost:8000 in your browser
+
+### Customization
+
+The web version will automatically load language plugins from the `plugins/` directory. You can add your own language definitions there to make them available in the web interface.
+
 ## Contributing
 
 Contributions are welcome! To contribute:
@@ -467,3 +514,4 @@ Please ensure your code follows the project's coding style and includes appropri
 ## License
 
 This project is open source and available under the [MIT](LICENSE) License.
+2. Create a feature branch (`

@@ -37,6 +37,7 @@ A powerful lexical analyzer (lexer) written in C++ with support for multiple pro
   - [Third-Party Libraries](#third-party-libraries)
   - [Web Version](#web-version)
     - [Building the Web Version](#building-the-web-version)
+    - [GitHub Pages Deployment](#github-pages-deployment)
     - [Customization](#customization)
   - [Contributing](#contributing)
   - [License](#license)
@@ -44,10 +45,11 @@ A powerful lexical analyzer (lexer) written in C++ with support for multiple pro
 ## Features
 
 - **Multiple Language Support**: Predefined configurations for C, C++, Java, Python, and JavaScript
-- **Plugin System**: 
-  - Load custom language definitions from JSON files
+- **Enhanced Plugin System**: 
+  - Load and register custom language definitions from JSON files
   - Extend the analyzer with new languages without recompiling
   - Export and share language configurations
+  - Prioritized plugin loading for improved language handling
 - **Advanced Token Recognition**:
   - Regular expression based pattern matching
   - Complete number formats: decimal, hex, octal, binary, scientific notation
@@ -101,15 +103,28 @@ lex/
 │   ├── LanguageConfig.h/cpp # Language configurations
 │   ├── ConfigLoader.h/cpp # JSON configuration loading
 │   ├── LanguagePlugin.h/cpp # Plugin system
+│   ├── wasm_bindings.cpp # WebAssembly bindings
 │   └── ExportFormatter.h/cpp # Output formatting
 ├── include/             # External libraries
 │   └── json.hpp         # nlohmann/json library
 ├── plugins/             # Language plugin definitions
-│   └── javascript.json  # Example language definition
+│   ├── c_config.json    # C language definition
+│   ├── cpp_config.json  # C++ language definition
+│   ├── java_config.json # Java language definition
+│   ├── js_config.json   # JavaScript language definition
+│   └── python_config.json # Python language definition
+├── web/                 # Web interface files
+│   ├── index.html       # Web UI
+│   ├── app.js           # Application logic
+│   └── lex.js/wasm/data # WebAssembly build outputs
 ├── tests/               # Test files
+├── .github/             # GitHub configuration
+│   └── workflows/       # GitHub Actions workflows
 ├── Makefile             # Build configuration
+├── emscripten.mk        # WebAssembly build configuration
 ├── .gitignore           # Git ignore file
 ├── README.md            # This file
+└── LICENSE              # MIT License
 ```
 
 ## Architecture
@@ -233,7 +248,7 @@ Lex comes with built-in support for:
 
 ## Plugin System
 
-Lex features a flexible plugin system that allows loading language definitions from JSON files without recompiling the application.
+Lex features a flexible and enhanced plugin system that allows loading and prioritizing language definitions from JSON files without recompiling the application.
 
 ### Using Language Plugins
 
@@ -244,6 +259,8 @@ cp my_language.json plugins/
 ./lex --list-plugins  # Should show your new language
 ./lex -l my_language file.txt
 ```
+
+The plugin system now prioritizes custom plugins over built-in language configurations, allowing for more flexible customization.
 
 ### Creating Custom Plugins
 
@@ -461,6 +478,12 @@ Lex is also available as a WebAssembly module that can run directly in your brow
 
 [https://adhamafis.github.io/lex/](https://adhamafis.github.io/lex/)
 
+The web version includes all the features of the command-line version, including:
+- Support for all built-in language configurations
+- Real-time tokenization and analysis
+- HTML visualization of the token stream
+- Language plugin system
+
 ### Building the Web Version
 
 To compile Lex to WebAssembly for web browsers:
@@ -486,6 +509,7 @@ To compile Lex to WebAssembly for web browsers:
 3. The compiled files will be placed in the `web/` directory
    - `lex.js` - JavaScript glue code
    - `lex.wasm` - WebAssembly binary
+   - `lex.data` - Preloaded plugin data
    - Various support files for the module
 
 4. Open `web/index.html` in a browser to test locally:
@@ -495,9 +519,26 @@ To compile Lex to WebAssembly for web browsers:
 
 5. Visit http://localhost:8000 in your browser
 
+### GitHub Pages Deployment
+
+The web version is automatically deployed to GitHub Pages whenever changes are pushed to the main branch using GitHub Actions. The deployment workflow:
+
+1. Checks out the repository
+2. Sets up Emscripten
+3. Builds the WebAssembly module
+4. Copies all plugin configurations to the web directory
+5. Deploys the contents of the web directory to the gh-pages branch
+
+This ensures that the latest version of Lex is always available online.
+
 ### Customization
 
-The web version will automatically load language plugins from the `plugins/` directory. You can add your own language definitions there to make them available in the web interface.
+The web version will automatically load language plugins from the `plugins/` directory. You can add your own language definitions there to make them available in the web interface. The enhanced plugin system provides:
+
+- Automatic plugin detection and registration
+- Support for custom language configurations
+- Improved error logging for plugin loading issues
+- Prioritization of plugins over built-in languages
 
 ## Contributing
 
@@ -514,4 +555,3 @@ Please ensure your code follows the project's coding style and includes appropri
 ## License
 
 This project is open source and available under the [MIT](LICENSE) License.
-2. Create a feature branch (`

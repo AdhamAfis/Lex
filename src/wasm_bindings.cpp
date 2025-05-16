@@ -78,32 +78,31 @@ char* tokenizeString(const char* sourceCode, const char* languageId) {
     jsonResponse << "{";
     
     try {
-        // Get language configuration
+        // Get language configuration from plugins or registered languages
         LanguageConfig config;
         
         // First check custom runtime-registered languages
         auto customLangIt = customLanguages.find(langId);
         if (customLangIt != customLanguages.end()) {
             config = customLangIt->second;
-        }
-        else if (langId == "c") {
-            config = LanguageConfig::createCConfig();
-        } else if (langId == "cpp" || langId == "c++") {
-            config = LanguageConfig::createCppConfig();
-        } else if (langId == "java") {
-            config = LanguageConfig::createJavaConfig();
-        } else if (langId == "python" || langId == "py") {
-            config = LanguageConfig::createPythonConfig();
-        } else if (langId == "javascript" || langId == "js") {
-            config = LanguageConfig::createJavaScriptConfig();
         } else {
+            // Handle some common aliases
+            std::string langKey = langId;
+            if (langId == "c++") langKey = "cpp";
+            if (langId == "py") langKey = "python";
+            if (langId == "javascript") langKey = "js";
+            
             // Check if there's a plugin
             auto& pluginManager = LanguagePluginManager::getInstance();
-            if (pluginManager.hasLanguage(langId)) {
-                config = pluginManager.loadLanguage(langId);
+            if (pluginManager.hasLanguage(langKey)) {
+                config = pluginManager.loadLanguage(langKey);
             } else {
                 // Default to C++ if not found
-                config = LanguageConfig::createCppConfig();
+                try {
+                    config = pluginManager.loadLanguage("cpp");
+                } catch (...) {
+                    throw std::runtime_error("No language plugins available");
+                }
             }
         }
         
@@ -166,29 +165,23 @@ char* getLanguageNames() {
     std::stringstream jsonResponse;
     jsonResponse << "[";
     
-    // Add built-in languages
-    jsonResponse << "{\"id\": \"c\", \"name\": \"C\"},";
-    jsonResponse << "{\"id\": \"cpp\", \"name\": \"C++\"},";
-    jsonResponse << "{\"id\": \"java\", \"name\": \"Java\"},";
-    jsonResponse << "{\"id\": \"python\", \"name\": \"Python\"},";
-    jsonResponse << "{\"id\": \"js\", \"name\": \"JavaScript\"}";
-    
-    // Add languages from plugins
+    // Get all languages from plugins
     auto& pluginManager = LanguagePluginManager::getInstance();
     auto plugins = pluginManager.getAvailableLanguages();
+    bool firstItem = true;
     
     for (const auto& plugin : plugins) {
-        // Skip if it's one of the built-in languages
-        if (plugin == "c" || plugin == "cpp" || plugin == "java" || 
-            plugin == "python" || plugin == "js" || plugin == "javascript") {
-            continue;
-        }
-        
         try {
             // Load the language to get its name
             auto config = pluginManager.loadLanguage(plugin);
-            jsonResponse << ",{\"id\": \"" << plugin << "\", \"name\": \"" 
-                         << escapeJsonString(config.getName()) << "\"}";
+            
+            if (!firstItem) {
+                jsonResponse << ",";
+            }
+            firstItem = false;
+            
+            jsonResponse << "{\"id\": \"" << plugin << "\", \"name\": \"" 
+                       << escapeJsonString(config.getName()) << "\"}";
         } catch (...) {
             // Skip if we can't load it
             continue;

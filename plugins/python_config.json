@@ -1,0 +1,105 @@
+{
+  "name": "Python",
+  "version": "Python 3.9",
+  "characterSets": {
+    "identifierStart": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "identifierContinue": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "operators": "+-*/%=<>!&|^~@",
+    "delimiters": "()[]{},;:.",
+    "whitespace": " \\t\\n\\r\\f\\v"
+  },
+  "keywords": [
+    "False", "None", "True", "and", "as", "assert", "async", "await", "break",
+    "class", "continue", "def", "del", "elif", "else", "except", "finally",
+    "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal",
+    "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"
+  ],
+  "builtins": [
+    "abs", "all", "any", "bin", "bool", "bytearray", "bytes", "callable", "chr",
+    "classmethod", "compile", "complex", "delattr", "dict", "dir", "divmod",
+    "enumerate", "eval", "exec", "filter", "float", "format", "frozenset",
+    "getattr", "globals", "hasattr", "hash", "help", "hex", "id", "input",
+    "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map",
+    "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow",
+    "print", "property", "range", "repr", "reversed", "round", "set", "setattr",
+    "slice", "sorted", "staticmethod", "str", "sum", "super", "tuple", "type",
+    "vars", "zip", "__import__"
+  ],
+  "commentConfig": {
+    "singleLineCommentStarts": ["#"]
+  },
+  "stringConfig": {
+    "stringDelimiters": [
+      {
+        "start": "\"",
+        "end": "\""
+      },
+      {
+        "start": "'",
+        "end": "'"
+      },
+      {
+        "start": "\"\"\"",
+        "end": "\"\"\""
+      },
+      {
+        "start": "'''",
+        "end": "'''"
+      }
+    ],
+    "escapeChar": "\\",
+    "rawStringPrefix": "r"
+  },
+  "numberConfig": {
+    "decimalIntPattern": "\\b[0-9]+\\b",
+    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
+    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
+    "octalPattern": "\\b0[oO][0-7]+\\b",
+    "binaryPattern": "\\b0[bB][01]+\\b",
+    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
+  },
+  "tokenRules": [
+    {
+      "name": "Identifier",
+      "pattern": "[a-zA-Z_][a-zA-Z0-9_]*",
+      "type": 8,
+      "precedence": 1
+    },
+    {
+      "name": "HexNumber",
+      "pattern": "0[xX][0-9a-fA-F]+",
+      "type": 2,
+      "precedence": 2
+    },
+    {
+      "name": "BinaryNumber",
+      "pattern": "0[bB][01]+",
+      "type": 4,
+      "precedence": 2
+    },
+    {
+      "name": "OctalNumber",
+      "pattern": "0[oO][0-7]+",
+      "type": 3,
+      "precedence": 2
+    },
+    {
+      "name": "ScientificNumber",
+      "pattern": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+",
+      "type": 5,
+      "precedence": 2
+    },
+    {
+      "name": "FloatNumber",
+      "pattern": "[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+",
+      "type": 1,
+      "precedence": 2
+    },
+    {
+      "name": "IntNumber",
+      "pattern": "[0-9]+",
+      "type": 0,
+      "precedence": 2
+    }
+  ]
+} 

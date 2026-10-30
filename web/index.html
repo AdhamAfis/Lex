@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f5f7fc">
     <title>Lex - Online Lexical Analyzer</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         :root {
             color-scheme: light;
@@ -23,7 +22,7 @@
             margin: 0;
             background: var(--canvas);
             color: var(--ink);
-            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             line-height: 1.5;
         }
         ::selection { background: #cbd4ff; color: #172551; }
@@ -36,21 +35,18 @@
             padding: 26px 0;
             border-bottom: 1px solid var(--line);
         }
-        .brand { display: flex; align-items: center; gap: 13px; }
-        .brand-mark {
-            display: grid; place-items: center; width: 40px; height: 40px;
-            border-radius: 11px; background: var(--blue); color: white;
-            font-family: ui-monospace, monospace; font-size: 20px; font-weight: 700;
-        }
-        h1 { margin: 0; color: #263caa; font-size: 1.5rem; line-height: 1; letter-spacing: -.03em; }
-        header p { margin: 5px 0 0; color: var(--muted); font-size: .8rem; }
-        .header-link { color: var(--muted); font-size: .84rem; font-weight: 600; text-decoration: none; }
+        .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+        h1 { margin: 0; color: #263caa; font-size: 1.8rem; font-weight: 750; line-height: 1; letter-spacing: -.04em; }
+        header p { max-width: 230px; margin: 0; padding-left: 16px; border-left: 1px solid #cad4e6; color: var(--muted); font-size: .78rem; line-height: 1.4; }
+        .header-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .84rem; font-weight: 600; text-decoration: none; }
+        .header-link svg { width: 19px; height: 19px; flex: none; fill: currentColor; }
         .header-link:hover { color: var(--blue-dark); }
         main { padding: 42px 0 0; }
         .intro { margin-bottom: 25px; }
         .intro h2 { margin: 0 0 5px; font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -.03em; line-height: 1.2; }
         .intro p { margin: 0; color: var(--muted); font-size: .95rem; }
-        .controls { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+        .workspace { overflow: hidden; background: var(--surface); border: 1px solid #d3dcea; border-radius: 14px; box-shadow: 0 12px 30px rgba(39, 60, 110, .06); }
+        .controls { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: #fbfcff; }
         .control-group { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
         .language-control { display: grid; gap: 6px; }
         label { color: var(--muted); font-size: .75rem; font-weight: 700; }
@@ -63,13 +59,14 @@
         .btn-secondary, .btn-example { background: var(--surface); border-color: var(--line); color: var(--ink); }
         .btn-secondary:hover, .btn-example:hover { background: #edf1ff; border-color: #bdc9ee; }
         select { min-width: 182px; padding: 0 36px 0 12px; border: 1px solid #cbd5e5; background: white; color: var(--ink); cursor: pointer; }
-        .container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
-        .input-container, .output-container { min-width: 0; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+        .container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+        .input-container, .output-container { min-width: 0; padding: 20px; background: var(--surface); }
+        .output-container { border-left: 1px solid var(--line); }
         .panel-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
         .panel-heading h2 { margin: 0; font-size: .94rem; letter-spacing: -.01em; }
         .panel-heading span { color: var(--muted); font-size: .75rem; }
         textarea, #output {
-            display: block; width: 100%; height: 390px; padding: 16px; border: 1px solid var(--line);
+            display: block; width: 100%; height: 420px; padding: 16px; border: 1px solid var(--line);
             border-radius: 9px; background: var(--code); color: var(--ink);
             font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .84rem; line-height: 1.7;
         }
@@ -81,10 +78,10 @@
         #loading { display: none; align-items: center; position: absolute; inset: 55px 20px 20px; justify-content: center; background: rgba(248, 250, 255, .94); color: var(--blue-dark); font-size: .9rem; font-weight: 600; border-radius: 9px; }
         .loading-spinner { width: 17px; height: 17px; margin-right: 10px; border: 2px solid #c4cef5; border-top-color: var(--blue); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .execution-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--line); color: var(--muted); font: 600 .72rem Inter, sans-serif; }
+        .execution-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .72rem; font-weight: 600; }
         .execution-stats span { font-weight: 400; }
-        .token { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 9px 0; border-bottom: 1px solid #e8edf5; font-size: .8rem; }
-        .token-type { min-width: 125px; color: #334dc0; font-weight: 700; font-size: .7rem; }
+        .token { display: grid; grid-template-columns: minmax(105px, auto) minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8edf5; font-size: .8rem; }
+        .token-type { color: #334dc0; font-weight: 700; font-size: .7rem; }
         .token-lexeme { color: var(--ink); white-space: pre-wrap; }
         .token-location { margin-left: auto; color: var(--muted); font-size: .7rem; white-space: nowrap; }
         .token.keyword .token-type { color: #7137a4; }
@@ -100,7 +97,10 @@
         @media (max-width: 720px) {
             .app-container { padding: 0 18px; }
             header { padding: 19px 0; }
-            header p { max-width: 220px; }
+            .brand { display: block; }
+            h1 { font-size: 1.6rem; }
+            header p { max-width: 200px; margin-top: 6px; padding: 0; border: 0; font-size: .75rem; }
+            .header-link { font-size: .78rem; }
             main { padding-top: 30px; }
             .controls { align-items: stretch; }
             .language-control, select { width: 100%; }
@@ -108,6 +108,10 @@
             .controls button { flex: 1; padding-inline: 8px; font-size: .8rem; }
             .container { grid-template-columns: minmax(0, 1fr); }
             .input-container, .output-container { padding: 16px; }
+            .output-container { border-left: 0; border-top: 1px solid var(--line); }
+            .controls { padding: 16px; }
+            .token { grid-template-columns: minmax(94px, auto) minmax(0, 1fr); gap: 3px 10px; }
+            .token-location { grid-column: 2; }
             textarea, #output { height: 280px; }
             footer { flex-wrap: wrap; }
         }
@@ -117,17 +121,18 @@
 <body>
     <div class="app-container">
         <header>
-            <div class="brand">
-                <div class="brand-mark" aria-hidden="true">&lt;/&gt;</div>
-                <div><h1>Lex</h1><p>Online Lexical Analyzer powered by WebAssembly</p></div>
-            </div>
-            <a class="header-link" href="https://github.com/adhamafis/lex">GitHub Repository</a>
+            <div class="brand"><h1>Lex</h1><p>Online Lexical Analyzer powered by WebAssembly</p></div>
+            <a class="header-link" href="https://github.com/adhamafis/lex">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.49c-2.23.48-2.69-1.08-2.69-1.08-.36-.92-.89-1.16-.89-1.16-.73-.5.06-.49.06-.49.8.06 1.22.82 1.22.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.73c.68 0 1.36.09 2 .27 1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.33c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+                <span>GitHub Repository</span>
+            </a>
         </header>
         <main>
             <div class="intro">
                 <h2>Explore your code, one token at a time.</h2>
                 <p>Choose a language, add source code, and analyze the result.</p>
             </div>
+            <div class="workspace">
             <div class="controls">
                 <div class="language-control">
                     <label for="language">Language</label>
@@ -141,14 +146,15 @@
             </div>
             <div class="container">
                 <section class="input-container" aria-labelledby="source-heading">
-                    <div class="panel-heading"><h2 id="source-heading">Source Code</h2><span>Input</span></div>
+                    <div class="panel-heading"><h2 id="source-heading">Source Code</h2><span>Ctrl / Cmd + Enter to analyze</span></div>
                     <textarea id="source" aria-labelledby="source-heading" placeholder="Enter your code here..." spellcheck="false"></textarea>
                 </section>
                 <section class="output-container" aria-labelledby="output-heading">
-                    <div class="panel-heading"><h2 id="output-heading">Token Output</h2><span>Results</span></div>
+                    <div class="panel-heading"><h2 id="output-heading">Token Output</h2><span>Token stream</span></div>
                     <div id="loading" role="status"><div class="loading-spinner" aria-hidden="true"></div><span>Analyzing...</span></div>
                     <div id="output" role="region" aria-live="polite" aria-label="Token output" tabindex="0"></div>
                 </section>
+            </div>
             </div>
         </main>
         <footer>

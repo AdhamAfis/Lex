@@ -48,9 +48,15 @@ test('browser releases language and token response buffers after reading them', 
     handlers['analyzeBtn:click']();
     assert.equal(freed.length, 2, 'token response must be released');
     assert.equal(values.size, 0);
+    let prevented = false;
+    handlers['source:keydown']({key: 'Enter', ctrlKey: true, metaKey: false, preventDefault() { prevented = true; }});
+    assert.equal(prevented, true);
+    assert.equal(freed.length, 3, 'keyboard shortcut must run analysis');
+    handlers['source:keydown']({key: 'Enter', ctrlKey: false, metaKey: true, preventDefault() {}});
+    assert.equal(freed.length, 4, 'Mac keyboard shortcut must run analysis');
     element('source').value = 'int a;\0int b;';
     handlers['analyzeBtn:click']();
-    assert.equal(freed.length, 2, 'input containing a null byte must not be sent to WebAssembly');
+    assert.equal(freed.length, 4, 'input containing a null byte must not be sent to WebAssembly');
     assert.match(element('output').textContent, /null byte/);
 });
 

@@ -297,6 +297,12 @@ LexModule().then(function(Module) {
     // Set up event listeners
     function setupEventListeners() {
         analyzeBtn.addEventListener('click', analyzeCode);
+        sourceTextArea.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                analyzeCode();
+            }
+        });
         clearBtn.addEventListener('click', clearAll);
         exampleBtn.addEventListener('click', addExampleCode);
         // All plugin-related event listeners removed

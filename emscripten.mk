@@ -1,4 +1,4 @@
-CXX = emcc
+CXX = em++
 CXXFLAGS = -std=c++17 -O2 -fexceptions -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']
 SRCS = src/wasm_bindings.cpp \
        src/Lexer.cpp \

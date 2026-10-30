@@ -14,6 +14,9 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
 
+      - name: Run native tests
+        run: make test
+
       - name: Install Emscripten 🔧
         uses: mymindstorm/setup-emsdk@v11
         with:
@@ -23,8 +26,7 @@ jobs:
         run: |
           mkdir -p web
           emcc --version
-          make -f emscripten.mk
-          # Make sure the plugins directory is properly populated
+          make -f emscripten.mk test
           mkdir -p web/plugins
           cp -r plugins/* web/plugins/
           
@@ -33,4 +35,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
-          folder: web 
+          folder: web

@@ -1,557 +1,137 @@
-# Lex - Advanced Lexical Analyzer
+# Lex
 
-A powerful lexical analyzer (lexer) written in C++ with support for multiple programming languages and advanced features. This tool tokenizes source code into meaningful lexical elements such as keywords, identifiers, operators, and literals.
+Lex is a C++17 lexical analyzer that turns source code into tokens such as keywords, identifiers, literals, and operators. It includes JSON language configurations for C, C++, Java, Python, and JavaScript, a command-line interface, and a browser interface built with WebAssembly.
 
-## Table of Contents
+This is a learning project for exploring lexer design and configurable token rules. The language configurations cover common syntax; they do not implement the full specifications of those languages.
 
-- [Lex - Advanced Lexical Analyzer](#lex---advanced-lexical-analyzer)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Installation](#installation)
-    - [Prerequisites](#prerequisites)
-    - [Building from Source](#building-from-source)
-  - [Project Structure](#project-structure)
-  - [Architecture](#architecture)
-  - [Usage](#usage)
-    - [Command Line Options](#command-line-options)
-    - [Interactive Mode](#interactive-mode)
-    - [Processing Files](#processing-files)
-    - [Exporting Results](#exporting-results)
-    - [Plugin Management](#plugin-management)
-  - [Supported Languages](#supported-languages)
-  - [Plugin System](#plugin-system)
-    - [Using Language Plugins](#using-language-plugins)
-    - [Creating Custom Plugins](#creating-custom-plugins)
-  - [Examples](#examples)
-    - [Basic Tokenization](#basic-tokenization)
-    - [Analyzing a File](#analyzing-a-file)
-    - [HTML Export Example](#html-export-example)
-    - [Using Plugins](#using-plugins)
-  - [Advanced Usage](#advanced-usage)
-    - [Custom Language Configuration](#custom-language-configuration)
-    - [Manual Token Processing](#manual-token-processing)
-  - [Troubleshooting](#troubleshooting)
-    - [Common Issues](#common-issues)
-    - [Debug Mode](#debug-mode)
-  - [Extending the Lexer](#extending-the-lexer)
-  - [Third-Party Libraries](#third-party-libraries)
-  - [Web Version](#web-version)
-    - [Building the Web Version](#building-the-web-version)
-    - [GitHub Pages Deployment](#github-pages-deployment)
-    - [Customization](#customization)
-  - [Contributing](#contributing)
-  - [License](#license)
+[Browser demo](https://adhamafis.github.io/lex/) · [Build](#build-and-run) · [Design](#design) · [Limitations](#limitations)
 
-## Features
+## Build and run
 
-- **Multiple Language Support**: Predefined configurations for C, C++, Java, Python, and JavaScript
-- **Enhanced Plugin System**: 
-  - Load and register custom language definitions from JSON files
-  - Extend the analyzer with new languages without recompiling
-  - Export and share language configurations
-  - Prioritized plugin loading for improved language handling
-- **Advanced Token Recognition**:
-  - Regular expression based pattern matching
-  - Complete number formats: decimal, hex, octal, binary, scientific notation
-  - Support for multi-line and documentation comments
-  - Unicode support
-  - Preprocessor directives
+You need a C++17 compiler and Make. The test suite also requires Python 3 and Node.js 20 or newer.
 
-- **Symbol Table Construction**: Tracks identifiers and their scopes
-- **Export Capabilities**:
-  - Export tokens to JSON, XML, CSV, and HTML formats
-  - Visual token stream representation in HTML
-  - Export language configurations to JSON
-
-- **Detailed Error Reporting**: Precise error location and context information
-- **Performance Metrics**: Track lexing performance statistics
-
-## Installation
-
-### Prerequisites
-
-- C++ compiler with C++17 support (GCC 7+, Clang 5+, or MSVC 2017+)
-- Make build system (optional, but recommended)
-
-### Building from Source
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/adhamafis/lex.git
-   cd lex
-   ```
-
-2. Build using Make:
-   ```
-   make
-   ```
-
-3. Verify the installation:
-   ```
-   ./lex --help
-   ```
-
-## Project Structure
-
-```
-lex/
-├── src/                 # Source code
-│   ├── main.cpp         # Entry point
-│   ├── Lexer.h/cpp      # Core lexer implementation
-│   ├── Token.h/cpp      # Token definitions
-│   ├── SymbolTable.h/cpp # Symbol table implementation
-│   ├── LanguageConfig.h/cpp # Language configurations
-│   ├── ConfigLoader.h/cpp # JSON configuration loading
-│   ├── LanguagePlugin.h/cpp # Plugin system
-│   ├── wasm_bindings.cpp # WebAssembly bindings
-│   └── ExportFormatter.h/cpp # Output formatting
-├── include/             # External libraries
-│   └── json.hpp         # nlohmann/json library
-├── plugins/             # Language plugin definitions
-│   ├── c_config.json    # C language definition
-│   ├── cpp_config.json  # C++ language definition
-│   ├── java_config.json # Java language definition
-│   ├── js_config.json   # JavaScript language definition
-│   └── python_config.json # Python language definition
-├── web/                 # Web interface files
-│   ├── index.html       # Web UI
-│   ├── app.js           # Application logic
-│   └── lex.js/wasm/data # WebAssembly build outputs
-├── tests/               # Test files
-├── .github/             # GitHub configuration
-│   └── workflows/       # GitHub Actions workflows
-├── Makefile             # Build configuration
-├── emscripten.mk        # WebAssembly build configuration
-├── .gitignore           # Git ignore file
-├── README.md            # This file
-└── LICENSE              # MIT License
+```sh
+git clone https://github.com/AdhamAfis/Lex.git
+cd Lex
+make
+./lex -v tests/test.js
 ```
 
-## Architecture
+Lex loads language configurations from `./plugins` by default, so run it from the repository root or provide a plugin directory with `-p`.
 
-The lexer is designed with the following components:
+The sample JavaScript file includes `function test() { return 42; }`. Its token output includes:
 
-1. **Lexer**: The core component that reads source code and produces tokens
-2. **TokenStream**: A sequence of tokens that can be traversed
-3. **SymbolTable**: Maintains a database of identifiers and their scopes
-4. **LanguageConfig**: Defines language-specific rules and patterns
-5. **ConfigLoader**: Loads and saves language configurations from/to JSON
-6. **LanguagePluginManager**: Manages custom language plugins
-7. **ExportFormatter**: Formats token output in various formats
+```text
+KEYWORD: 'function' at tests/test.js:1:1
+IDENTIFIER: 'test' at tests/test.js:1:10 [undeclared, scope: global]
+PARENTHESIS: '(' at tests/test.js:1:14
+...
+KEYWORD: 'return' at tests/test.js:1:19
+INTEGER: '42' at tests/test.js:1:26
+```
+
+Use `-v` to print tokens and the symbol-table summary. Without it, Lex prints a summary and any lexical errors. For file processing, a nonzero exit status indicates a read, lexical, or export error. Exports replace regular files atomically; new export files are private to the current user.
 
 ## Usage
 
-### Command Line Options
+```sh
+# Analyze a file; Lex can infer the language from common extensions
+./lex -v path/to/source.cpp
 
-```
-Usage: lex [options] [file]
-Options:
-  -i, --interactive              Start in interactive mode
-  -l, --language <lang>          Specify language (c, cpp, java, python, js)
-  -c, --config <file>            Use custom language configuration file
-  -p, --plugins-dir <dir>        Specify plugins directory (default: ./plugins)
-  -v, --verbose                  Show detailed token information
-  -e, --export <format>          Export tokens in format (json, xml, csv, html)
-  -o, --output <file>            Output file for export
-  --export-config <lang> <file>  Export language config to a JSON file
-  --list-plugins                 List available language plugins
-  -h, --help                     Display this help message
-```
+# Select a language explicitly
+./lex -v -l python path/to/source.py
 
-### Interactive Mode
+# Export tokens to JSON, XML, CSV, or HTML
+./lex -l cpp -e json -o tokens.json path/to/source.cpp
 
-Run the lexer in interactive mode:
-
-```
-./lex -i
-```
-
-or with a specific language:
-
-```
-./lex -i -l python
-```
-
-In this mode, you can type expressions and see the resulting tokens. Type `exit` to quit or `language <n>` to change the active language.
-
-### Processing Files
-
-To analyze a file:
-
-```
-./lex path/to/file
-```
-
-With language specification:
-
-```
-./lex -l java path/to/file.java
-```
-
-With verbose output:
-
-```
-./lex -v path/to/file
-```
-
-### Exporting Results
-
-Export tokens to various formats:
-
-```
-./lex -l cpp -e json -o tokens.json path/to/file.cpp
-```
-
-Available export formats:
-- `json`: Structured JSON format
-- `xml`: XML document
-- `csv`: Comma-separated values
-- `html`: Interactive HTML visualization
-
-### Plugin Management
-
-List available language plugins:
-
-```
+# Start interactive mode, list plugins, or see all options
+./lex -i -l cpp
 ./lex --list-plugins
+./lex --help
 ```
 
-Export a language configuration to a JSON file:
+Interactive mode processes one line at a time. Enter `exit` to quit, `language python` to switch languages, or `list-plugins` to list available configurations.
 
-```
-./lex --export-config js my_javascript.json
-```
+| Language | Flag | Common extensions |
+| --- | --- | --- |
+| C | `-l c` | `.c` |
+| C++ | `-l cpp` | `.cpp`, `.cc`, `.cxx`, `.hpp`, `.h` |
+| Java | `-l java` | `.java` |
+| Python | `-l python` | `.py` |
+| JavaScript | `-l js` | `.js` |
 
-Use a custom configuration file:
+## Language configurations
 
-```
-./lex -c my_config.json path/to/file
-```
+The CLI scans JSON files with a nonempty `name` in the plugins directory. Plugin names and filename aliases must be unique (case-insensitively); a collision prevents plugins from loading. Start with a bundled configuration when creating your own:
 
-Specify a custom plugins directory:
-
-```
-./lex -p /path/to/plugins -l js file.js
-```
-
-## Supported Languages
-
-Lex comes with built-in support for:
-
-| Language      | Flag           | File Extensions |
-|---------------|----------------|-----------------|
-| C             | `-l c`         | .c, .h          |
-| C++           | `-l cpp`       | .cpp, .hpp, .cc |
-| Java          | `-l java`      | .java           |
-| Python        | `-l python`    | .py             |
-| JavaScript    | `-l js`        | .js             |
-
-## Plugin System
-
-Lex features a flexible and enhanced plugin system that allows loading and prioritizing language definitions from JSON files without recompiling the application.
-
-### Using Language Plugins
-
-Place JSON language definition files in the `plugins/` directory to make them automatically available:
-
-```
-cp my_language.json plugins/
-./lex --list-plugins  # Should show your new language
-./lex -l my_language file.txt
+```sh
+./lex --export-config cpp custom_cpp.json
+./lex -c custom_cpp.json -v path/to/source.cpp
 ```
 
-The plugin system now prioritizes custom plugins over built-in language configurations, allowing for more flexible customization.
+Alternatively, place a configuration in a plugin directory and select it by name:
 
-### Creating Custom Plugins
-
-Create a JSON file with the following structure:
-
-```json
-{
-  "name": "MyLanguage",
-  "version": "1.0",
-  "keywords": ["if", "else", "while", "for"],
-  "types": ["int", "float", "bool"],
-  "characterSets": {
-    "identifierStart": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "identifierContinue": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-    "operators": "+-*/=<>!&|^~?:",
-    "delimiters": "()[]{},;.",
-    "whitespace": " \\t\\n\\r\\f\\v"
-  },
-  "commentConfig": {
-    "singleLineCommentStarts": ["//"],
-    "multiLineCommentDelimiters": [
-      { "start": "/*", "end": "*/" }
-    ]
-  },
-  "stringConfig": {
-    "stringDelimiters": [
-      { "start": "\"", "end": "\"" }
-    ],
-    "escapeChar": "\\"
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[oO][0-7]+\\b",
-    "binaryPattern": "\\b0[bB][01]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
-  },
-  "tokenRules": [
-    {
-      "name": "Identifier",
-      "pattern": "[a-zA-Z_][a-zA-Z0-9_]*",
-      "type": 1,
-      "precedence": 1
-    },
-    // Additional token rules...
-  ]
-}
+```sh
+./lex -p /path/to/plugins --list-plugins
+./lex -p /path/to/plugins -l mylanguage path/to/source.txt
 ```
 
-## Examples
+A configuration can define keywords, character sets, comment and string delimiters, and regular-expression token rules. See the files in [`plugins/`](plugins/) and the token types in [`src/Token.h`](src/Token.h). Token-rule types are stored as numeric enum values; EOF, ERROR, and UNKNOWN are reserved and cannot be used in rules. Rule order matters because Lex uses the first matching rule. Test changes against representative source before relying on a configuration.
 
-### Basic Tokenization
+Number patterns belong in `tokenRules`. Older `numberConfig` fields were unused and are ignored when loading older configurations. Token-rule patterns use standard JSON string escaping. Configurations exported by older versions may have extra backslashes in their patterns and need those removed before use.
+Custom C or C++ configurations exported by older versions also need `"preprocessorConfig": {"directiveStart": "#"}` to recognize directives.
+Language-specific multi-character operators are listed in `additionalOperators`. C++ raw-string handling uses `stringConfig.cppRawStrings`; copy these settings from the bundled configurations when updating older custom files.
 
-```
-$ ./lex -i -l cpp
-Lex Interactive Mode (Language: C++)
-Enter 'exit' to quit, 'language <n>' to change language
-> int main() { return 0; }
-Lexical Analysis Results:
-------------------------
-Total tokens: 9
-Processing time: 1 ms
-No lexical errors detected.
+If a custom configuration cannot be loaded, the CLI reports the error and exits. An unrecognized language falls back to the C++ plugin.
 
-Tokens:
-KEYWORD: 'int' at :1:1
-IDENTIFIER: 'main' at :1:5 [undeclared]
-PARENTHESIS: '(' at :1:9
-PARENTHESIS: ')' at :1:10
-BRACE: '{' at :1:12
-KEYWORD: 'return' at :1:14
-INTEGER: '0' at :1:21 [decimal]
-SEMICOLON: ';' at :1:22
-BRACE: '}' at :1:24
-EOF: '' at :1:26
+## Design
 
-Symbol Table:
-Symbol Table: 1 unique symbols
-Scope: global (Global) at :0:0 [1 symbols]
-```
+Lex separates language configuration from token processing so that the same lexer can be used with different JSON definitions. The main flow is:
 
-### Analyzing a File
+1. `LanguagePluginManager` and `ConfigLoader` load a language configuration.
+2. `Lexer` scans the input, handles comments and strings, tries configured token rules, and returns tokens with source locations.
+3. `SymbolTable` records encountered identifiers. The CLI prints results or passes tokens to an `ExportFormatter`.
+4. The WebAssembly bindings expose the lexer to the browser interface in `web/`.
 
-```
-$ ./lex -v path/to/file.cpp
-Processing file: path/to/file.cpp (Language: C++)
-Lexical Analysis Results:
-------------------------
-Total tokens: 145
-Processing time: 12 ms
-No lexical errors detected.
+This design makes language rules easy to inspect and change without rebuilding the native program. It also means that a general-purpose scanner and configuration must approximate language-specific rules that a dedicated compiler lexer would handle in more detail.
 
-Tokens:
-[... token listing ...]
+## Limitations
+
+- Language configurations are partial. Passing analysis does not establish that a program is syntactically or semantically valid.
+- The symbol table records encountered identifiers, but Lex does not parse declarations or provide complete scope or type analysis. An identifier shown as undeclared is not a compiler diagnostic.
+- Lex recognizes preprocessor directives as tokens; it does not perform full preprocessing or macro expansion.
+- Unicode and language-specific edge cases have not been comprehensively implemented or tested. Rule order, overlapping patterns, number formats, strings, and comments deserve particular care when editing plugins.
+- Python formatted strings are returned as single string tokens; expressions inside them are not parsed or tokenized separately.
+- The web interface analyzes entered text and displays tokens. It does not expose every CLI option or export format.
+
+## Tests
+
+```sh
+make test
 ```
 
-### HTML Export Example
+The regression suite checks representative token types across the bundled configurations, incomplete strings and comments, directive boundaries, token locations, JSON export, CLI failures, plugin-directory selection, interactive input closure, and browser response-buffer ownership. These are focused regression checks, not exhaustive language-conformance tests. GitHub Actions is configured to run them on pushes and pull requests.
 
-```
-$ ./lex -l cpp -e html -o tokens.html path/to/file.cpp
-Tokens exported to tokens.html in html format.
-```
 
-The HTML output provides a visual representation of the token stream with syntax highlighting.
+## Browser build
 
-### Using Plugins
+Install the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html), activate it, then run:
 
-```
-# List available plugins
-$ ./lex --list-plugins
-Available language plugins:
-  - javascript
-  - mylanguage
-
-# Use a plugin for analysis
-$ ./lex -l mylanguage source.myext
-Processing file: source.myext (Language: MyLanguage)
-...
-
-# Export a built-in language as a starting point for customization
-$ ./lex --export-config cpp custom_cpp.json
-Language configuration for C++ exported to: custom_cpp.json
+```sh
+make -f emscripten.mk
+python3 -m http.server 8000 --directory web
 ```
 
-## Advanced Usage
+Open [localhost:8000](http://localhost:8000). The build generates `web/lex.js`, `web/lex.wasm`, and `web/lex.data`; the language plugins are preloaded into the WebAssembly filesystem. The repository includes a GitHub Pages deployment workflow.
 
-### Custom Language Configuration
+To run the WebAssembly regression check in Node.js, use `make -f emscripten.mk test`.
 
-The lexer can be extended with custom language configurations:
+## Project layout
 
-```cpp
-// In your code
-LanguageConfig customConfig;
-customConfig.setName("MyLanguage");
-customConfig.addKeywords({"if", "else", "while", "for"});
-// ... more configuration
+- [`src/`](src/) — lexer, token and symbol types, configuration, exporters, CLI, and WebAssembly bindings
+- [`plugins/`](plugins/) — bundled JSON language configurations
+- [`web/`](web/) — browser interface
+- [`tests/`](tests/) — sample inputs and regression tests
+- [`Makefile`](Makefile) and [`emscripten.mk`](emscripten.mk) — native and WebAssembly builds
 
-Lexer lexer(source, customConfig);
-```
-
-### Manual Token Processing
-
-```cpp
-// In your code
-Lexer lexer(source);
-std::vector<Token> tokens = lexer.tokenize();
-
-// Process tokens manually
-for (const auto& token : tokens) {
-    // Do something with each token
-}
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Compilation errors**
-   - Make sure you have a C++17 compatible compiler
-   - Check that all dependencies are installed
-
-2. **Language detection issues**
-   - Explicitly specify the language with the `-l` flag
-   - Check that your file extension is recognized
-
-3. **Export failures**
-   - Ensure the output directory exists and is writable
-   - Check that the specified format is supported
-
-4. **Plugin loading issues**
-   - Verify that the JSON syntax in your plugin file is correct
-   - Ensure regex patterns are properly escaped
-   - Use the `--list-plugins` option to check if your plugin is detected
-
-### Debug Mode
-
-For detailed debug output, compile with:
-
-```
-make debug
-```
-
-## Extending the Lexer
-
-The lexer can be easily extended with:
-
-1. **New Language Support**: 
-   - Add new language configurations in `LanguageConfig.cpp`
-   - Or create JSON plugin files in the `plugins/` directory
-
-2. **Additional Token Types**: 
-   Extend the `TokenType` enum in `Token.h`
-
-3. **Custom Export Formats**: 
-   Create new exporters in `ExportFormatter.cpp`
-
-4. **Adding New Features**:
-   - Implement additional symbol table functionality
-   - Add more advanced error recovery mechanisms
-   - Extend token attribute handling
-
-## Third-Party Libraries
-
-This project uses the following third-party libraries:
-
-- [**nlohmann/json**](https://github.com/nlohmann/json): A modern C++ JSON library
-  - Version: 3.11.3
-  - License: MIT
-  - Used for parsing and generating JSON configuration files
-
-## Web Version
-
-Lex is also available as a WebAssembly module that can run directly in your browser. You can try it online at:
-
-[https://adhamafis.github.io/lex/](https://adhamafis.github.io/lex/)
-
-The web version includes all the features of the command-line version, including:
-- Support for all built-in language configurations
-- Real-time tokenization and analysis
-- HTML visualization of the token stream
-- Language plugin system
-
-### Building the Web Version
-
-To compile Lex to WebAssembly for web browsers:
-
-1. Install the Emscripten compiler toolkit:
-   ```bash
-   # Using a package manager
-   brew install emscripten  # macOS
-   
-   # Or manually
-   git clone https://github.com/emscripten-core/emsdk.git
-   cd emsdk
-   ./emsdk install latest
-   ./emsdk activate latest
-   source ./emsdk_env.sh
-   ```
-
-2. Build using the emscripten makefile:
-   ```bash
-   make -f emscripten.mk
-   ```
-
-3. The compiled files will be placed in the `web/` directory
-   - `lex.js` - JavaScript glue code
-   - `lex.wasm` - WebAssembly binary
-   - `lex.data` - Preloaded plugin data
-   - Various support files for the module
-
-4. Open `web/index.html` in a browser to test locally:
-   ```bash
-   cd web && python -m http.server
-   ```
-
-5. Visit http://localhost:8000 in your browser
-
-### GitHub Pages Deployment
-
-The web version is automatically deployed to GitHub Pages whenever changes are pushed to the main branch using GitHub Actions. The deployment workflow:
-
-1. Checks out the repository
-2. Sets up Emscripten
-3. Builds the WebAssembly module
-4. Copies all plugin configurations to the web directory
-5. Deploys the contents of the web directory to the gh-pages branch
-
-This ensures that the latest version of Lex is always available online.
-
-### Customization
-
-The web version will automatically load language plugins from the `plugins/` directory. You can add your own language definitions there to make them available in the web interface. The enhanced plugin system provides:
-
-- Automatic plugin detection and registration
-- Support for custom language configurations
-- Improved error logging for plugin loading issues
-- Prioritization of plugins over built-in languages
-
-## Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code follows the project's coding style and includes appropriate tests.
-
-## License
-
-This project is open source and available under the [MIT](LICENSE) License.
+Lex uses the bundled [nlohmann/json](https://github.com/nlohmann/json) library for JSON parsing and output. Lex and that library are distributed under the MIT license; see [LICENSE](LICENSE).

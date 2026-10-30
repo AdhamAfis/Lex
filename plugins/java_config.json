@@ -1,4 +1,5 @@
 {
+  "additionalOperators": ["++", "--", "&&", "||", ">>>", ">>>=", "->", "::"],
   "name": "Java",
   "version": "Java 15",
   "characterSets": {
@@ -44,20 +45,12 @@
       }
     ],
     "escapeChar": "\\",
-    "characterDelimiters": [
+    "charDelimiters": [
       {
         "start": "'",
         "end": "'"
       }
     ]
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+[lL]?\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*[fFdD]?|[0-9]*\\.[0-9]+[fFdD]?\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+[lL]?\\b",
-    "octalPattern": "\\b0[0-7]+[lL]?\\b",
-    "binaryPattern": "\\b0[bB][01]+[lL]?\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFdD]?\\b"
   },
   "tokenRules": [
     {
@@ -82,6 +75,12 @@
       "name": "OctalNumber",
       "pattern": "0[0-7]+[lL]?",
       "type": 3,
+      "precedence": 2
+    },
+    {
+      "name": "ScientificNumber",
+      "pattern": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFdD]?",
+      "type": 5,
       "precedence": 2
     },
     {

@@ -17,9 +17,15 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+-include $(OBJS:.o=.d)
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(OBJS:.o=.d) $(TARGET)
 
-.PHONY: all clean 
+test: $(TARGET)
+	python3 -m unittest discover -s tests -p 'test_*.py'
+	node --test tests/test_web.cjs
+
+.PHONY: all clean test

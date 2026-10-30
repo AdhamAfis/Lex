@@ -4,53 +4,26 @@
 #include "ExportFormatter.h"
 #include <sstream>
 #include <iomanip>
+#include "../include/json.hpp"
 
-// JSON Exporter implementation
 std::string JsonExporter::exportToString(const std::vector<Token>& tokens) const {
-    std::stringstream ss;
-    
-    ss << "{\n";
-    ss << "  \"tokens\": [\n";
-    
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        const Token& token = tokens[i];
-        
-        ss << "    {\n";
-        ss << "      \"type\": \"" << token.typeToString() << "\",\n";
-        ss << "      \"lexeme\": \"" << token.lexeme << "\",\n";
-        ss << "      \"line\": " << token.location.line << ",\n";
-        ss << "      \"column\": " << token.location.column << ",\n";
-        
-        if (!token.location.filename.empty()) {
-            ss << "      \"filename\": \"" << token.location.filename << "\"";
-        }
-        
-        if (token.attribute) {
-            ss << ",\n      \"attributes\": " << token.attribute->toString();
-        }
-        
-        ss << "\n    }";
-        
-        if (i < tokens.size() - 1) {
-            ss << ",";
-        }
-        
-        ss << "\n";
+    nlohmann::json output = {{"tokens", nlohmann::json::array()}};
+    for (const auto& token : tokens) {
+        nlohmann::json item = {{"type", token.typeToString()}, {"lexeme", token.lexeme},
+                               {"line", token.location.line}, {"column", token.location.column}};
+        if (!token.location.filename.empty()) item["filename"] = token.location.filename;
+        if (token.attribute) item["attributes"] = token.attribute->toString();
+        output["tokens"].push_back(item);
     }
-    
-    ss << "  ]\n";
-    ss << "}\n";
-    
-    return ss.str();
+    return output.dump(2) + "\n";
 }
 
-// XML Exporter implementation
 std::string XmlExporter::exportToString(const std::vector<Token>& tokens) const {
     std::stringstream ss;
-    
+
     ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     ss << "<tokens>\n";
-    
+
     for (const auto& token : tokens) {
         ss << "  <token>\n";
         ss << "    <type>" << token.typeToString() << "</type>\n";
@@ -58,31 +31,32 @@ std::string XmlExporter::exportToString(const std::vector<Token>& tokens) const 
         ss << "    <location>\n";
         ss << "      <line>" << token.location.line << "</line>\n";
         ss << "      <column>" << token.location.column << "</column>\n";
-        
+
         if (!token.location.filename.empty()) {
-            ss << "      <filename>" << token.location.filename << "</filename>\n";
+            ss << "      <filename>" << escapeXml(token.location.filename) << "</filename>\n";
         }
-        
+
         ss << "    </location>\n";
-        
+
         if (token.attribute) {
             ss << "    <attributes>" << escapeXml(token.attribute->toString()) << "</attributes>\n";
         }
-        
+
         ss << "  </token>\n";
     }
-    
+
     ss << "</tokens>\n";
-    
+
     return ss.str();
 }
 
-// Helper method to escape XML special characters
 std::string XmlExporter::escapeXml(const std::string& input) const {
     std::string output;
     output.reserve(input.size());
-    
+
     for (char c : input) {
+        if (static_cast<unsigned char>(c) < 0x20 && c != '\t' && c != '\n' && c != '\r')
+            throw std::runtime_error("XML cannot represent control characters");
         switch (c) {
             case '&': output += "&amp;"; break;
             case '<': output += "&lt;"; break;
@@ -92,15 +66,13 @@ std::string XmlExporter::escapeXml(const std::string& input) const {
             default: output += c; break;
         }
     }
-    
+
     return output;
 }
 
-// CSV Exporter implementation
 std::string CsvExporter::exportToString(const std::vector<Token>& tokens) const {
     std::stringstream ss;
-    
-    // Add headers if requested
+
     if (includeHeaders) {
         ss << "Type" << delimiter
            << "Lexeme" << delimiter
@@ -109,49 +81,46 @@ std::string CsvExporter::exportToString(const std::vector<Token>& tokens) const 
            << "Filename" << delimiter
            << "Attributes" << "\n";
     }
-    
-    // Add token data
+
     for (const auto& token : tokens) {
         ss << token.typeToString() << delimiter
            << "\"" << escapeCsv(token.lexeme) << "\"" << delimiter
            << token.location.line << delimiter
            << token.location.column << delimiter
            << "\"" << escapeCsv(token.location.filename) << "\"" << delimiter;
-        
+
         if (token.attribute) {
             ss << "\"" << escapeCsv(token.attribute->toString()) << "\"";
         }
-        
+
         ss << "\n";
     }
-    
+
     return ss.str();
 }
 
-// Helper method to escape CSV special characters
 std::string CsvExporter::escapeCsv(const std::string& input) const {
     std::string output;
     output.reserve(input.size());
-    
+
     for (char c : input) {
         output += c;
         if (c == '\"') {
-            output += '\"'; // Double quotation marks
+            output += '\"';
         }
     }
-    
+
     return output;
 }
 
-// HTML Exporter implementation
 std::string HtmlExporter::exportToString(const std::vector<Token>& tokens) const {
     std::stringstream ss;
-    
+
     ss << "<!DOCTYPE html>\n";
     ss << "<html>\n";
     ss << "<head>\n";
     ss << "  <title>Token Visualization</title>\n";
-    
+
     if (includeStyles) {
         ss << "  <style>\n";
         ss << "    body { font-family: Arial, sans-serif; margin: 20px; }\n";
@@ -175,7 +144,7 @@ std::string HtmlExporter::exportToString(const std::vector<Token>& tokens) const
         ss << "    .details { font-size: 0.8em; color: #666; margin-top: 5px; }\n";
         ss << "  </style>\n";
     }
-    
+
     ss << "</head>\n";
     ss << "<body>\n";
     ss << "  <h1>Token Visualization</h1>\n";
@@ -183,70 +152,68 @@ std::string HtmlExporter::exportToString(const std::vector<Token>& tokens) const
     ss << "    <tr>\n";
     ss << "      <th>Type</th>\n";
     ss << "      <th>Lexeme</th>\n";
-    
+
     if (includeTokenDetails) {
         ss << "      <th>Line</th>\n";
         ss << "      <th>Column</th>\n";
         ss << "      <th>Filename</th>\n";
         ss << "      <th>Attributes</th>\n";
     }
-    
+
     ss << "    </tr>\n";
-    
+
     for (const auto& token : tokens) {
         ss << "    <tr>\n";
         ss << "      <td>" << token.typeToString() << "</td>\n";
-        ss << "      <td class=\"token-" << token.typeToString() << "\">" 
+        ss << "      <td class=\"token-" << token.typeToString() << "\">"
            << escapeHtml(token.lexeme) << "</td>\n";
-        
+
         if (includeTokenDetails) {
             ss << "      <td>" << token.location.line << "</td>\n";
             ss << "      <td>" << token.location.column << "</td>\n";
             ss << "      <td>" << escapeHtml(token.location.filename) << "</td>\n";
             ss << "      <td>";
-            
+
             if (token.attribute) {
                 ss << escapeHtml(token.attribute->toString());
             }
-            
+
             ss << "</td>\n";
         }
-        
+
         ss << "    </tr>\n";
     }
-    
+
     ss << "  </table>\n";
-    
-    // Add token stream visualization
+
     ss << "  <h2>Token Stream</h2>\n";
     ss << "  <div class=\"token-stream\">\n";
-    
+
     for (const auto& token : tokens) {
         if (token.type == TokenType::EOF_TOKEN) {
-            continue; // Skip EOF in visualization
+            continue;
         }
-        
-        ss << "    <span class=\"token-" << token.typeToString() << "\">" 
+
+        ss << "    <span class=\"token-" << token.typeToString() << "\">"
            << escapeHtml(token.lexeme);
-        
+
         if (includeTokenDetails) {
             ss << "<span class=\"details\">[" << token.typeToString() << "]</span>";
         }
-        
+
         ss << "</span>\n";
     }
-    
+
     ss << "  </div>\n";
     ss << "</body>\n";
     ss << "</html>\n";
-    
+
     return ss.str();
 }
 
-// Helper method to escape HTML special characters
 std::string HtmlExporter::escapeHtml(const std::string& input) const {
     std::stringstream ss;
-    
+
     for (char c : input) {
         switch (c) {
             case '&': ss << "&amp;"; break;
@@ -260,11 +227,10 @@ std::string HtmlExporter::escapeHtml(const std::string& input) const {
             default: ss << c; break;
         }
     }
-    
+
     return ss.str();
 }
 
-// Exporter Factory implementation
 std::unique_ptr<TokenExporter> ExporterFactory::createExporter(Format format) {
     switch (format) {
         case Format::JSON:
@@ -278,4 +244,4 @@ std::unique_ptr<TokenExporter> ExporterFactory::createExporter(Format format) {
         default:
             return nullptr;
     }
-} 
+}

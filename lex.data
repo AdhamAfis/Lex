@@ -1,4 +1,10 @@
 {
+  "additionalOperators": [
+    "++",
+    "--",
+    "&&",
+    "||"
+  ],
   "name": "C",
   "version": "C99/C11",
   "characterSets": {
@@ -9,16 +15,54 @@
     "whitespace": " \\t\\n\\r\\f\\v"
   },
   "keywords": [
-    "auto", "break", "case", "char", "const", "continue", "default", "do", 
-    "double", "else", "enum", "extern", "float", "for", "goto", "if", 
-    "int", "long", "register", "return", "short", "signed", "sizeof", "static", 
-    "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while"
+    "auto",
+    "break",
+    "case",
+    "char",
+    "const",
+    "continue",
+    "default",
+    "do",
+    "double",
+    "else",
+    "enum",
+    "extern",
+    "float",
+    "for",
+    "goto",
+    "if",
+    "int",
+    "long",
+    "register",
+    "return",
+    "short",
+    "signed",
+    "sizeof",
+    "static",
+    "struct",
+    "switch",
+    "typedef",
+    "union",
+    "unsigned",
+    "void",
+    "volatile",
+    "while"
   ],
   "types": [
-    "int", "char", "short", "long", "float", "double", "void", "signed", "unsigned"
+    "int",
+    "char",
+    "short",
+    "long",
+    "float",
+    "double",
+    "void",
+    "signed",
+    "unsigned"
   ],
   "commentConfig": {
-    "singleLineCommentStarts": ["//"],
+    "singleLineCommentStarts": [
+      "//"
+    ],
     "multiLineCommentDelimiters": [
       {
         "start": "/*",
@@ -33,18 +77,30 @@
         "end": "\""
       }
     ],
+    "charDelimiters": [
+      {
+        "start": "'",
+        "end": "'"
+      }
+    ],
     "escapeChar": "\\"
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[0-7]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
   },
   "preprocessorConfig": {
     "directiveStart": "#",
-    "directives": ["include", "define", "undef", "if", "ifdef", "ifndef", "else", "elif", "endif", "line", "error", "pragma"]
+    "directives": [
+      "include",
+      "define",
+      "undef",
+      "if",
+      "ifdef",
+      "ifndef",
+      "else",
+      "elif",
+      "endif",
+      "line",
+      "error",
+      "pragma"
+    ]
   },
   "tokenRules": [
     {
@@ -66,8 +122,14 @@
       "precedence": 2
     },
     {
+      "name": "ScientificNumber",
+      "pattern": "([0-9]+(\\.[0-9]*)?|\\.[0-9]+)[eE][+-]?[0-9]+[fFlL]?",
+      "type": 5,
+      "precedence": 2
+    },
+    {
       "name": "FloatNumber",
-      "pattern": "[0-9]+\\.[0-9]+",
+      "pattern": "([0-9]+\\.[0-9]*|\\.[0-9]+)[fFlL]?",
       "type": 1,
       "precedence": 2
     },
@@ -78,7 +140,9 @@
       "precedence": 2
     }
   ]
-} {
+}
+{
+  "additionalOperators": ["++", "--", "&&", "||", "->", "->*", "::", "<=>"],
   "characterSets": {
     "delimiters": "()[]{},;.",
     "identifierContinue": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -171,14 +235,7 @@
     "case"
   ],
   "name": "C++",
-  "numberConfig": {
-    "binaryPattern": "",
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[0-7]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
-  },
+  "preprocessorConfig": {"directiveStart": "#"},
   "stringConfig": {
     "charDelimiters": [
       {
@@ -188,6 +245,7 @@
     ],
     "escapeChar": "\\",
     "rawStringPrefix": "R",
+    "cppRawStrings": true,
     "stringDelimiters": [
       {
         "end": "\"",
@@ -216,27 +274,27 @@
     },
     {
       "name": "ScientificNumber",
-      "pattern": "[0-9]+(\\\\.[0-9]+)?[eE][+-]?[0-9]+",
+      "pattern": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFlL]?",
       "precedence": 2,
       "type": 5
     },
     {
       "name": "FloatNumber",
-      "pattern": "[0-9]+\\\\.[0-9]+",
+      "pattern": "[0-9]+\\.[0-9]+[fFlL]?",
       "precedence": 2,
       "type": 1
-    },
-    {
-      "name": "IntNumber",
-      "pattern": "[0-9]+",
-      "precedence": 2,
-      "type": 0
     },
     {
       "name": "BinaryNumber",
       "pattern": "0[bB][01]+",
       "precedence": 2,
       "type": 4
+    },
+    {
+      "name": "IntNumber",
+      "pattern": "[0-9]+",
+      "precedence": 2,
+      "type": 0
     }
   ],
   "types": [
@@ -257,6 +315,7 @@
   ],
   "version": "C++17"
 }{
+  "additionalOperators": ["++", "--", "&&", "||", ">>>", ">>>=", "->", "::"],
   "name": "Java",
   "version": "Java 15",
   "characterSets": {
@@ -302,20 +361,12 @@
       }
     ],
     "escapeChar": "\\",
-    "characterDelimiters": [
+    "charDelimiters": [
       {
         "start": "'",
         "end": "'"
       }
     ]
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+[lL]?\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*[fFdD]?|[0-9]*\\.[0-9]+[fFdD]?\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+[lL]?\\b",
-    "octalPattern": "\\b0[0-7]+[lL]?\\b",
-    "binaryPattern": "\\b0[bB][01]+[lL]?\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFdD]?\\b"
   },
   "tokenRules": [
     {
@@ -343,6 +394,12 @@
       "precedence": 2
     },
     {
+      "name": "ScientificNumber",
+      "pattern": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFdD]?",
+      "type": 5,
+      "precedence": 2
+    },
+    {
       "name": "FloatNumber",
       "pattern": "[0-9]+\\.[0-9]*[fFdD]?|[0-9]*\\.[0-9]+[fFdD]?",
       "type": 1,
@@ -356,6 +413,22 @@
     }
   ]
 } {
+  "additionalOperators": [
+    "++",
+    "--",
+    "&&",
+    "||",
+    "===",
+    "!==",
+    "=>",
+    ">>>",
+    ">>>=",
+    "**",
+    "**=",
+    "??",
+    "??=",
+    "?."
+  ],
   "characterSets": {
     "delimiters": "()[]{},;.",
     "identifierContinue": "_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -424,14 +497,6 @@
     "case"
   ],
   "name": "JavaScript",
-  "numberConfig": {
-    "binaryPattern": "\\b0[bB][01]+\\b",
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[oO][0-7]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
-  },
   "stringConfig": {
     "charDelimiters": [],
     "escapeChar": "\\",
@@ -498,43 +563,38 @@
       "name": "SingleLineComment",
       "pattern": "//.*$",
       "precedence": 3,
-      "type": 9
+      "type": 24
     },
     {
       "name": "MultiLineComment",
       "pattern": "/\\*[\\s\\S]*?\\*/",
       "precedence": 3,
-      "type": 10
+      "type": 24
     },
     {
       "name": "String",
-      "pattern": "\"([^\\\\\"]|\\\\.)*\"|'([^\\\\']|\\\\.)*'",
+      "pattern": "\"([^\\\"]|\\.)*\"|'([^\\']|\\.)*'",
       "precedence": 2,
-      "type": 7
-    },
-    {
-      "name": "TemplateString",
-      "pattern": "`([^\\\\`]|\\\\.)*`",
-      "precedence": 2,
-      "type": 11
-    },
-    {
-      "name": "Operator",
-      "pattern": "[\\+\\-\\*/%=<>!&|^~\\?:]+",
-      "precedence": 1,
       "type": 6
     },
     {
-      "name": "Punctuation",
-      "pattern": "[\\(\\)\\[\\]\\{\\},;\\.]",
-      "precedence": 1,
-      "type": 12
+      "name": "TemplateString",
+      "pattern": "`([^\\`]|\\.)*`",
+      "precedence": 2,
+      "type": 6
     }
   ],
   "types": [],
   "version": "ECMAScript 2020",
-  "fileExtensions": [".js", ".jsx", ".mjs", ".cjs"]
-}{
+  "fileExtensions": [
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs"
+  ]
+}
+{
+  "additionalOperators": ["**", "**=", "//", "//=", "->"],
   "name": "Python",
   "version": "Python 3.9",
   "characterSets": {
@@ -566,35 +626,17 @@
   },
   "stringConfig": {
     "stringDelimiters": [
-      {
-        "start": "\"",
-        "end": "\""
-      },
-      {
-        "start": "'",
-        "end": "'"
-      },
-      {
-        "start": "\"\"\"",
-        "end": "\"\"\""
-      },
-      {
-        "start": "'''",
-        "end": "'''"
-      }
+      { "start": "\"\"\"", "end": "\"\"\"" },
+      { "start": "'''", "end": "'''" },
+      { "start": "\"", "end": "\"" },
+      { "start": "'", "end": "'" }
     ],
     "escapeChar": "\\",
-    "rawStringPrefix": "r"
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[oO][0-7]+\\b",
-    "binaryPattern": "\\b0[bB][01]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
+    "rawStringPrefix": "r",
+    "formattedStringPrefixes": ["fr", "fR", "Fr", "FR", "rf", "rF", "Rf", "RF", "f", "F"]
   },
   "tokenRules": [
+    {"name": "AssignmentExpression", "pattern": ":=", "type": 11, "precedence": 1},
     {
       "name": "Identifier",
       "pattern": "[a-zA-Z_][a-zA-Z0-9_]*",

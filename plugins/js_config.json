@@ -1,4 +1,20 @@
 {
+  "additionalOperators": [
+    "++",
+    "--",
+    "&&",
+    "||",
+    "===",
+    "!==",
+    "=>",
+    ">>>",
+    ">>>=",
+    "**",
+    "**=",
+    "??",
+    "??=",
+    "?."
+  ],
   "characterSets": {
     "delimiters": "()[]{},;.",
     "identifierContinue": "_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -67,14 +83,6 @@
     "case"
   ],
   "name": "JavaScript",
-  "numberConfig": {
-    "binaryPattern": "\\b0[bB][01]+\\b",
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[oO][0-7]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
-  },
   "stringConfig": {
     "charDelimiters": [],
     "escapeChar": "\\",
@@ -141,40 +149,33 @@
       "name": "SingleLineComment",
       "pattern": "//.*$",
       "precedence": 3,
-      "type": 9
+      "type": 24
     },
     {
       "name": "MultiLineComment",
       "pattern": "/\\*[\\s\\S]*?\\*/",
       "precedence": 3,
-      "type": 10
+      "type": 24
     },
     {
       "name": "String",
-      "pattern": "\"([^\\\\\"]|\\\\.)*\"|'([^\\\\']|\\\\.)*'",
+      "pattern": "\"([^\\\"]|\\.)*\"|'([^\\']|\\.)*'",
       "precedence": 2,
-      "type": 7
-    },
-    {
-      "name": "TemplateString",
-      "pattern": "`([^\\\\`]|\\\\.)*`",
-      "precedence": 2,
-      "type": 11
-    },
-    {
-      "name": "Operator",
-      "pattern": "[\\+\\-\\*/%=<>!&|^~\\?:]+",
-      "precedence": 1,
       "type": 6
     },
     {
-      "name": "Punctuation",
-      "pattern": "[\\(\\)\\[\\]\\{\\},;\\.]",
-      "precedence": 1,
-      "type": 12
+      "name": "TemplateString",
+      "pattern": "`([^\\`]|\\.)*`",
+      "precedence": 2,
+      "type": 6
     }
   ],
   "types": [],
   "version": "ECMAScript 2020",
-  "fileExtensions": [".js", ".jsx", ".mjs", ".cjs"]
+  "fileExtensions": [
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs"
+  ]
 }

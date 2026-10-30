@@ -1,4 +1,5 @@
 {
+  "additionalOperators": ["++", "--", "&&", "||", "->", "->*", "::", "<=>"],
   "characterSets": {
     "delimiters": "()[]{},;.",
     "identifierContinue": "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -91,14 +92,7 @@
     "case"
   ],
   "name": "C++",
-  "numberConfig": {
-    "binaryPattern": "",
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[0-7]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
-  },
+  "preprocessorConfig": {"directiveStart": "#"},
   "stringConfig": {
     "charDelimiters": [
       {
@@ -108,6 +102,7 @@
     ],
     "escapeChar": "\\",
     "rawStringPrefix": "R",
+    "cppRawStrings": true,
     "stringDelimiters": [
       {
         "end": "\"",
@@ -136,27 +131,27 @@
     },
     {
       "name": "ScientificNumber",
-      "pattern": "[0-9]+(\\\\.[0-9]+)?[eE][+-]?[0-9]+",
+      "pattern": "[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+[fFlL]?",
       "precedence": 2,
       "type": 5
     },
     {
       "name": "FloatNumber",
-      "pattern": "[0-9]+\\\\.[0-9]+",
+      "pattern": "[0-9]+\\.[0-9]+[fFlL]?",
       "precedence": 2,
       "type": 1
-    },
-    {
-      "name": "IntNumber",
-      "pattern": "[0-9]+",
-      "precedence": 2,
-      "type": 0
     },
     {
       "name": "BinaryNumber",
       "pattern": "0[bB][01]+",
       "precedence": 2,
       "type": 4
+    },
+    {
+      "name": "IntNumber",
+      "pattern": "[0-9]+",
+      "precedence": 2,
+      "type": 0
     }
   ],
   "types": [

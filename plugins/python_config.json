@@ -1,4 +1,5 @@
 {
+  "additionalOperators": ["**", "**=", "//", "//=", "->"],
   "name": "Python",
   "version": "Python 3.9",
   "characterSets": {
@@ -30,35 +31,17 @@
   },
   "stringConfig": {
     "stringDelimiters": [
-      {
-        "start": "\"",
-        "end": "\""
-      },
-      {
-        "start": "'",
-        "end": "'"
-      },
-      {
-        "start": "\"\"\"",
-        "end": "\"\"\""
-      },
-      {
-        "start": "'''",
-        "end": "'''"
-      }
+      { "start": "\"\"\"", "end": "\"\"\"" },
+      { "start": "'''", "end": "'''" },
+      { "start": "\"", "end": "\"" },
+      { "start": "'", "end": "'" }
     ],
     "escapeChar": "\\",
-    "rawStringPrefix": "r"
-  },
-  "numberConfig": {
-    "decimalIntPattern": "\\b[0-9]+\\b",
-    "floatingPointPattern": "\\b[0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+\\b",
-    "hexPattern": "\\b0[xX][0-9a-fA-F]+\\b",
-    "octalPattern": "\\b0[oO][0-7]+\\b",
-    "binaryPattern": "\\b0[bB][01]+\\b",
-    "scientificPattern": "\\b[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+\\b"
+    "rawStringPrefix": "r",
+    "formattedStringPrefixes": ["fr", "fR", "Fr", "FR", "rf", "rF", "Rf", "RF", "f", "F"]
   },
   "tokenRules": [
+    {"name": "AssignmentExpression", "pattern": ":=", "type": 11, "precedence": 1},
     {
       "name": "Identifier",
       "pattern": "[a-zA-Z_][a-zA-Z0-9_]*",

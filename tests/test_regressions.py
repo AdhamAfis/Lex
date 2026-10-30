@@ -296,7 +296,7 @@ int main() {
         objects = ['Lexer', 'Token', 'LanguageConfig', 'SymbolTable', 'ExportFormatter', 'ConfigLoader', 'LanguagePlugin']
         command = [os.environ.get('CXX', 'c++'), '-std=c++17', '-I' + str(tmp), str(tmp / 'check.cpp'),
                    str(ROOT / 'src/wasm_bindings.cpp')] + [str(ROOT / 'src' / (name + '.o')) for name in objects]
-        subprocess.run(command + ['-o', str(tmp / 'check')], check=True, capture_output=True, text=True)
+        subprocess.run(command + ['-o', str(tmp / 'check')], check=True)
         result = subprocess.run([str(tmp / 'check')], cwd=tmp, capture_output=True, text=True, check=True)
         payload = json.loads(result.stdout.splitlines()[-1])
         self.assertIn('error', payload)
